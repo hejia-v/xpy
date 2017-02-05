@@ -1,0 +1,10 @@
+{
+    "python.pythonPath": "C:/Python36/python.exe",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true
+    }
+}
