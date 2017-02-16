@@ -32,3 +32,5 @@ Thumbs.db
 *.meta
 *.pyc
 *.pyo
+native/build
+native/xpy/xtest

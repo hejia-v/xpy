@@ -42,11 +42,8 @@ endif()
 
 message ("cxx Flags: " ${CMAKE_CXX_FLAGS})
 
-add_subdirectory("external/" external)
-add_subdirectory("remotedebug/" remotedebug)
-add_subdirectory("sharplua/" sharplua)
-add_subdirectory("xtest/" xtest)
+# add_subdirectory("external/" external)
 add_subdirectory("xpy/" xpy)
-add_subdirectory("src/" luay)
+# add_subdirectory("src/" luay)
 
 message("======================================>" ${PROJECT_BINARY_DIR})
