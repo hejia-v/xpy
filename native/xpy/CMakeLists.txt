@@ -39,11 +39,10 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-
 message ("cxx Flags: " ${CMAKE_CXX_FLAGS})
 
-# add_subdirectory("external/" external)
+add_subdirectory("external/" external)
 add_subdirectory("xpy/" xpy)
-# add_subdirectory("src/" luay)
+add_subdirectory("test/" test)
 
 message("======================================>" ${PROJECT_BINARY_DIR})

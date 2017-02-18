@@ -34,3 +34,11 @@ Thumbs.db
 *.pyo
 native/build
 native/xpy/xtest
+*.obj
+*.log
+*.tlog
+**/PCbuild/obj
+**/PCbuild/amd64
+**/Python-3.6.0/externals
+*.VC.db
+*~$*

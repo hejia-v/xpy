@@ -6,6 +6,9 @@ set( Boost_USE_MULTITHREADED      ON )
 set( Boost_USE_STATIC_RUNTIME     OFF )
 set( BOOST_ALL_DYN_LINK           ON )
 
+include_directories(${PYTHON_INCLUDE_DIRS})
+link_directories(${Python_LIBRARY_DIRS})  # 要在add_executable或add_library的前面
+
 set(XPY_LIST
     ./xdef.h
     ./xpy.h
