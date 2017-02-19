@@ -12,24 +12,24 @@
 namespace fs = boost::filesystem;
 using namespace std;
 
-static wchar_t* py_program_name = nullptr;
-static wchar_t* py_home_path = nullptr;
+static wchar_t* g_PyProgramName = nullptr;
+static wchar_t* g_PyHomePath = nullptr;
 
-DebugCallback gDebugCallback;
+DebugCallback g_DebugCallback;
 
 void RegisterDebugCallback(DebugCallback callback)
 {
     if (callback)
     {
-        gDebugCallback = callback;
+        g_DebugCallback = callback;
     }
 }
 
 void DebugInUnity(std::string message)
 {
-    if (gDebugCallback)
+    if (g_DebugCallback)
     {
-        gDebugCallback(message.c_str());
+        g_DebugCallback(message.c_str());
     }
 }
 
@@ -62,25 +62,25 @@ void Python_Start(const char* program, const char* home)
 
     len = strlen(program) + 1;
     converted = 0;
-    if (py_program_name != nullptr)
+    if (g_PyProgramName != nullptr)
     {
-        delete[] py_program_name;
-        py_program_name = nullptr;
+        delete[] g_PyProgramName;
+        g_PyProgramName = nullptr;
     }
-    py_program_name = new wchar_t[len];
-    mbstowcs_s(&converted, py_program_name, len, program, _TRUNCATE);
-    Py_SetProgramName(py_program_name); /* optional but recommended */
+    g_PyProgramName = new wchar_t[len];
+    mbstowcs_s(&converted, g_PyProgramName, len, program, _TRUNCATE);
+    Py_SetProgramName(g_PyProgramName); /* optional but recommended */
 
     len = strlen(home) + 1;
     converted = 0;
-    if (py_home_path != nullptr)
+    if (g_PyHomePath != nullptr)
     {
-        delete[] py_home_path;
-        py_home_path = nullptr;
+        delete[] g_PyHomePath;
+        g_PyHomePath = nullptr;
     }
-    py_home_path = new wchar_t[len];
-    mbstowcs_s(&converted, py_home_path, len, home, _TRUNCATE);
-    Py_SetPythonHome(py_home_path);
+    g_PyHomePath = new wchar_t[len];
+    mbstowcs_s(&converted, g_PyHomePath, len, home, _TRUNCATE);
+    Py_SetPythonHome(g_PyHomePath);
 
     Py_Initialize();
     PyRun_SimpleString("from time import time,ctime\n"
