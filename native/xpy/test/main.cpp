@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include "xpy.h"
@@ -28,8 +28,11 @@ void python_embedding_test()
 {
     cout << Native_GetCurrentPath() << endl;
     char *program = "python36_xpy";
+    Python_RegisterModule();
     Python_Start(program, "G:/GameDev/unity/xpy/native/xpy/external/Python-3.6.0");
     std::cout << Python_CheckInterpreter(program) << "\n";
+    Python_InitScript("G:/GameDev/unity/xpy/Assets/Script");
+    Python_RunFunction("main", "main", "");
     Python_Finalize();
 }
 

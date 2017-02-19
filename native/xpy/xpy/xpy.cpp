@@ -1,10 +1,16 @@
-﻿#include "xpy.h"
+﻿#include <Python.h>
+// Since Python may define some pre-processor definitions which affect the standard headers
+// on some systems, you must include Python.h before any standard headers are included
+#include "xpy.h"
+#include "pybind_util_manual.h"
 #include <string>
+#include <vector>
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <Python.h>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 //#define  BOOST_DISABLE_ASSERTS
 #include <boost/assert.hpp>
@@ -25,11 +31,15 @@ void RegisterDebugCallback(DebugCallback callback)
     }
 }
 
-void DebugInUnity(std::string message)
+void xlog(int level, const char* message)
 {
     if (g_DebugCallback)
     {
-        g_DebugCallback(message.c_str());
+        g_DebugCallback(level, message);
+    }
+    else
+    {
+        cout << message << endl;
     }
 }
 
@@ -83,6 +93,7 @@ void Python_Start(const char* program, const char* home)
     Py_SetPythonHome(g_PyHomePath);
 
     Py_Initialize();
+    PyRun_SimpleString("print('python start!')");
     PyRun_SimpleString("from time import time,ctime\n"
         "print('Today is', ctime(time()))\n");
 }
@@ -108,183 +119,105 @@ bool Python_Finalize()
 
 void Python_RegisterModule()  // 在Py_Initialize之前调用
 {
-    DebugInUnity("register python module");
+    register_util_functions();
+    xlog(1, "register python module");
 }
 
+vector<string> ParseArgs(const char* args)
+{
+    vector<string> tokens;
+    boost::split(tokens, args, boost::is_any_of(","));  // boost::is_any_of这里相当于分割规则
+    for_each(tokens.begin(), tokens.end(), [](string &s) {boost::trim(s); });
+    tokens.erase(remove_if(tokens.begin(), tokens.end(), [](string s) {return s == ""; }), tokens.end());
+    return tokens;
+}
 
+int Python_InitScript(const char *scriptroot)
+{
+    string script_str = "g_ScriptRoot = '" + string(scriptroot) + "'\n"
+        "import sys\n"
+        "sys.path.append(g_ScriptRoot)\n";
 
+    PyObject *m, *d, *v;
+    m = PyImport_AddModule("__main__");
+    if (m == NULL)
+        return -1;
+    d = PyModule_GetDict(m);
+    v = PyRun_StringFlags(script_str.c_str(), Py_file_input, d, d, NULL);
+    if (v == NULL) 
+    {
+        PyErr_Print();
+        return -1;
+    }
+    Py_DECREF(v);
 
+    return 0;
+}
 
+int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args)
+{
+    PyObject *pName, *pModule, *pFunc;
+    PyObject *pArgs, *pValue;
+    int i;
 
+    pName = PyUnicode_DecodeFSDefault(pythonfile);
+    /* Error checking of pName left out */
 
+    pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
 
+    if (pModule != NULL)
+    {
+        pFunc = PyObject_GetAttrString(pModule, funcname);
+        /* pFunc is a new reference */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// #include <boost/python.hpp>
-
-
-
-// namespace python = boost::python;
-
-// template <class T>
-// void safe_execute(T functor);
-
-
-
-
-
-
-// void _python_eval_expression(const char *expression, std::string *result)
-// {
-//     python::object oPyMainModule = python::import("__main__");
-//     python::object oPyMainNamespace = oPyMainModule.attr("__dict__");
-//     python::object oResult = python::eval(expression, oPyMainNamespace);
-//     *result = python::extract<std::string>(oResult) BOOST_EXTRACT_WORKAROUND;
-// }
-
-// std::string python_eval(const char *expression)  // eval函数可以计算Python表达式，并返回结果
-// {
-//     std::string sValue = "";
-//     safe_execute(boost::bind(_python_eval_expression, expression, &sValue));
-//     return sValue;
-// }
-
-// void _python_exec_code(const char *code)
-// {
-//     python::object oPyMainModule = python::import("__main__");
-//     python::object oPyMainNamespace = oPyMainModule.attr("__dict__");
-//     python::object oResult = python::exec(code, oPyMainNamespace);
-// }
-
-// void python_exec(const char *code)  // 通过exec可以执行动态Python代码，exec不返回结果
-// {
-//     safe_execute(boost::bind(_python_exec_code, code));
-// }
-
-// void _python_exec_file(const char *filename)
-// {
-//     python::object oPyMainModule = python::import("__main__");
-//     python::object oPyMainNamespace = oPyMainModule.attr("__dict__");
-//     python::object result = python::exec_file(filename, oPyMainNamespace, oPyMainNamespace);
-// }
-
-// void python_exec_file(const char *filename)
-// {
-//     safe_execute(boost::bind(_python_exec_file, filename));
-// }
-
-
-
-
-
-
-
-
-
-
-// template <class T>
-// void safe_execute(T functor)
-// {
-//     void check_pyerr(bool pyerr_expected = false);
-//     if (python::handle_exception(functor))
-//     {
-//         check_pyerr();
-//     }
-// };
-
-// void check_pyerr(bool pyerr_expected = false)
-// {
-//     if (PyErr_Occurred())
-//     {
-//         if (!pyerr_expected)
-//         {
-//             //BOOST_ERROR("Python错误");
-//             if (PyErr_ExceptionMatches(PyExc_SyntaxError))
-//             {
-//                 void log_python_exception();
-//                 log_python_exception();
-//             }
-//             else
-//             {
-//                 PyErr_Print();
-//             }
-//         }
-//         else
-//             PyErr_Clear();
-//     }
-//     //else
-//         //BOOST_ERROR("一个C++表达式被抛出，这里没有表达式句柄被注册r.");
-// }
-
-// std::string strErrorMsg;
-
-// void log_python_exception()
-// {
-//     if (!Py_IsInitialized())
-//     {
-//         strErrorMsg = "Python运行环境没有初始化!";
-//         return;
-//     }
-//     if (PyErr_Occurred() != NULL)
-//     {
-//         PyObject *type_obj, *value_obj, *traceback_obj;
-//         PyErr_Fetch(&type_obj, &value_obj, &traceback_obj);
-//         if (value_obj == NULL)
-//             return;
-
-//         strErrorMsg.clear();
-//         PyErr_NormalizeException(&type_obj, &value_obj, 0);
-//         if (PyUnicode_Check(PyObject_Str(value_obj)))
-//         {
-//             strErrorMsg = _PyUnicode_AsString(PyObject_Str(value_obj));
-//         }
-
-//         if (traceback_obj != NULL)
-//         {
-//             strErrorMsg += "\nTraceback:";
-//             PyObject *pModuleName = PyUnicode_FromString("traceback");
-//             PyObject *pTraceModule = PyImport_Import(pModuleName);
-//             Py_XDECREF(pModuleName);
-//             if (pTraceModule != NULL)
-//             {
-//                 PyObject *pModuleDict = PyModule_GetDict(pTraceModule);
-//                 if (pModuleDict != NULL)
-//                 {
-//                     PyObject *pFunc = PyDict_GetItemString(pModuleDict, "format_exception");
-//                     if (pFunc != NULL)
-//                     {
-//                         PyObject *errList = PyObject_CallFunctionObjArgs(pFunc, type_obj, value_obj, traceback_obj, NULL);
-//                         if (errList != NULL)
-//                         {
-//                             Py_ssize_t listSize = PyList_Size(errList);
-//                             for (Py_ssize_t i = 0; i < listSize; ++i)
-//                             {
-//                                 strErrorMsg += _PyUnicode_AsString(PyList_GetItem(errList, i));
-//                             }
-//                         }
-//                     }
-//                 }
-//                 Py_XDECREF(pTraceModule);
-//             }
-//         }
-//         Py_XDECREF(type_obj);
-//         Py_XDECREF(value_obj);
-//         Py_XDECREF(traceback_obj);
-//     }
-//     strErrorMsg.append("\n");
-//     //cwrite(strErrorMsg.c_str(), "red_h");
-// }
-
+        if (pFunc && PyCallable_Check(pFunc))
+        {
+            vector<string> vargs = ParseArgs(args);
+            pArgs = PyTuple_New(vargs.size());
+            for (i = 0; i < vargs.size(); ++i)
+            {
+                pValue = PyUnicode_FromString(vargs[i].c_str());
+                if (!pValue)
+                {
+                    Py_DECREF(pArgs);
+                    Py_DECREF(pModule);
+                    fprintf(stderr, "Cannot convert argument\n");
+                    return 1;
+                }
+                /* pValue reference stolen here: */
+                PyTuple_SetItem(pArgs, i, pValue);
+            }
+            pValue = PyObject_CallObject(pFunc, pArgs);
+            Py_DECREF(pArgs);
+            if (pValue != NULL)
+            {
+                printf("Result of call: %ld\n", PyLong_AsLong(pValue));
+                Py_DECREF(pValue);
+            }
+            else
+            {
+                Py_DECREF(pFunc);
+                Py_DECREF(pModule);
+                PyErr_Print();
+                fprintf(stderr,"Call failed\n");
+                return 1;
+            }
+        }
+        else
+        {
+            if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"%s\"\n", funcname);
+        }
+        Py_XDECREF(pFunc);
+        Py_DECREF(pModule);
+    }
+    else
+    {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"%s\"\n", pythonfile);
+        return 1;
+    }
+    return 0;
+}

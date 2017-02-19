@@ -13,6 +13,8 @@ set(XPY_LIST
     ./xdef.h
     ./xpy.h
     ./xpy.cpp
+    ./pybind_util_manual.h
+    ./pybind_util_manual.cpp
 )
 
 source_group("" FILES ${XPY_LIST})

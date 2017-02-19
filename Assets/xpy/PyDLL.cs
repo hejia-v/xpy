@@ -17,9 +17,9 @@ namespace XPython
 #endif
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void DebugCallback(string message);
+        private delegate void DebugCallback(int level, string message);
 
-        private static void DebugMethod(string message)
+        private static void DebugMethod(int level, string message)
         {
             Debug.Log("xpy: " + message);
         }
@@ -44,6 +44,13 @@ namespace XPython
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Python_Finalize();
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Python_InitScript([MarshalAs(UnmanagedType.LPStr)] string pythonfile);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
+            [MarshalAs(UnmanagedType.LPStr)] string funcname, [MarshalAs(UnmanagedType.LPStr)] string args);
 
         public static string GetPath()
         {
@@ -72,6 +79,9 @@ namespace XPython
             string python_home = path + "/native/xpy/external/Python-3.6.0";
             Python_Start(program, python_home);
             bool isEmbedded = Python_CheckInterpreter(program);
+            string scriptroot = path + "/Assets/Script";
+            Python_InitScript(scriptroot);
+            Python_RunFunction("main", "main", "");
             Debug.Log("Python is embedded: " + isEmbedded);
             Python_Finalize();
         }
