@@ -16,17 +16,40 @@ namespace XPython
         const string DLL = "xpy";
 #endif
 
-        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void native_release_memory(IntPtr pbuffer);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void DebugCallback(string message);
+
+        private static void DebugMethod(string message)
+        {
+            Debug.Log("xpy: " + message);
+        }
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr native_get_current_path();
+        private static extern void RegisterDebugCallback(IntPtr callback);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Native_ReleaseMemory(IntPtr pbuffer);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Native_GetCurrentPath();
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Python_RegisterModule();
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Python_Start([MarshalAs(UnmanagedType.LPStr)] string program, [MarshalAs(UnmanagedType.LPStr)] string home);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool Python_CheckInterpreter([MarshalAs(UnmanagedType.LPStr)] string program);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool Python_Finalize();
 
         public static string GetPath()
         {
-            IntPtr strPtr = native_get_current_path();
+            IntPtr strPtr = Native_GetCurrentPath();
             string str = Marshal.PtrToStringAnsi(strPtr);
-            native_release_memory(strPtr);
+            Native_ReleaseMemory(strPtr);
             return str;
         }
 
@@ -34,58 +57,23 @@ namespace XPython
         {
             Debug.Log("PyDLL Init .................");
 
-            string str = GetPath();
-            Debug.Log(str);
+            // register c++ log
+            DebugCallback callback_delegate = new DebugCallback(DebugMethod);
+            // Convert callback_delegate into a function pointer that can be used in unmanaged code.
+            IntPtr intptr_delegate = Marshal.GetFunctionPointerForDelegate(callback_delegate);
+            // Call the API passing along the function pointer.
+            RegisterDebugCallback(intptr_delegate);
 
-            //StringBuilder sb = new StringBuilder(128);
-            //bool bSucc = get_path(sb, sb.Capacity);
-            //while (!bSucc)
-            //{
-            //    if (Marshal.GetLastWin32Error() != 0x7A)
-            //    {
-            //        // throw
-            //    }
+            string path = GetPath();
+            Debug.Log(path);
 
-            //    // Marshal.GetLastWin32Error() == ERROR_INSUFFICIENT_BUFFER
-            //    sb.Capacity *= 2;
-            //}
-            //Debug.Log(bSucc);
-            //Debug.Log(sb.ToString());
-
+            Python_RegisterModule();
+            string program = "python36_xpy";
+            string python_home = path + "/native/xpy/external/Python-3.6.0";
+            Python_Start(program, python_home);
+            bool isEmbedded = Python_CheckInterpreter(program);
+            Debug.Log("Python is embedded: " + isEmbedded);
+            Python_Finalize();
         }
-
     }
 }
-
-
-
-
-
-//[DllImport(DLL)]
-//private static extern int add(int x, int y);
-
-//[DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-//public static extern bool get_path(IntPtr buffer, [MarshalAs(UnmanagedType.U4)] int bufferSize);
-
-//[DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-//public static extern bool get_path1(StringBuilder buffer, [MarshalAs(UnmanagedType.U4)] int bufferSize);
-
-//public void my_function(ref string data)
-//{
-//    // allocate room on the stack
-//    IntPtr buffer = (IntPtr)stackalloc byte[4000];
-//    // convert the managed string into an ASCII byte[]
-//    byte[] data_buf = Encoding.ASCII.GetBytes(data);
-//    // check for out-of-bounds
-//    if (data_buf.Length > (4000 - 1))
-//    {
-//        throw new Exception("input too large for fixed size buffer");
-//    }
-//    // .. then copy the bytes
-//    Marshal.Copy(data_buf, 0, buffer, data_buf.Length);
-//    Marshal.WriteByte(buffer + data_buf.Length, 0); // terminating null
-
-//    get_path(buffer, 4000);
-//    // after the call, marshal the bytes back out
-//    data = Marshal.PtrToStringAnsi(buffer);
-//}

@@ -26,11 +26,11 @@ void char_array_test()
 
 void python_embedding_test()
 {
-    cout << native_get_current_path() << endl;
+    cout << Native_GetCurrentPath() << endl;
     char *program = "python36_xpy";
-    python_start(program, "G:/GameDev/unity/xpy/native/xpy/external/Python-3.6.0");
-    std::cout << python_check_interpreter(program) << "\n";
-    python_finalize();
+    Python_Start(program, "G:/GameDev/unity/xpy/native/xpy/external/Python-3.6.0");
+    std::cout << Python_CheckInterpreter(program) << "\n";
+    Python_Finalize();
 }
 
 int main(int argc, char *argv[])
