@@ -1,5 +1,8 @@
 #include <Python.h>
 #include "xpy.h"
+#include "log.h"
+
+using namespace xpy;
 
 static int numargs = 5;
 

@@ -9,10 +9,14 @@ set( BOOST_ALL_DYN_LINK           ON )
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${Python_LIBRARY_DIRS})  # 要在add_executable或add_library的前面
 
+include_directories("../external/fmt")
+
 set(XPY_LIST
     ./xdef.h
     ./xpy.h
     ./xpy.cpp
+    ./log.h
+    ./log.cpp
     ./pybind_util_manual.h
     ./pybind_util_manual.cpp
 )
@@ -23,5 +27,6 @@ set(XPY_SHARED_TARGET "xpy")
 add_library(${XPY_SHARED_TARGET} SHARED ${XPY_LIST})
 
 target_link_libraries( ${XPY_SHARED_TARGET} ${Boost_LIBRARIES} )
+target_link_libraries( ${XPY_SHARED_TARGET} "fmt" )
 
 set(XPY_SHARED_TARGET ${XPY_SHARED_TARGET} PARENT_SCOPE)

@@ -19,3 +19,9 @@ set(Python_LIBRARY_DIRS ${Python_LIBRARY_DIRS} PARENT_SCOPE)
 
 message("-- Python: 3.6.0")
 # python end -----------------------------------------------------------------
+
+add_subdirectory("fmt/" fmt)
+set_property(TARGET fmt PROPERTY FOLDER "external")
+
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
+set(CMAKE_CXX_FLAGS_RELEASE"$ENV{CXXFLAGS} -O3 -Wall")

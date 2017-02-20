@@ -2,6 +2,7 @@
 // Since Python may define some pre-processor definitions which affect the standard headers
 // on some systems, you must include Python.h before any standard headers are included
 #include "xpy.h"
+#include "log.h"
 #include "pybind_util_manual.h"
 #include <string>
 #include <vector>
@@ -17,31 +18,11 @@
 
 namespace fs = boost::filesystem;
 using namespace std;
+using namespace xpy;
 
 static wchar_t* g_PyProgramName = nullptr;
 static wchar_t* g_PyHomePath = nullptr;
 
-DebugCallback g_DebugCallback;
-
-void RegisterDebugCallback(DebugCallback callback)
-{
-    if (callback)
-    {
-        g_DebugCallback = callback;
-    }
-}
-
-void xlog(int level, const char* message)
-{
-    if (g_DebugCallback)
-    {
-        g_DebugCallback(level, message);
-    }
-    else
-    {
-        cout << message << endl;
-    }
-}
 
 const char* Native_GetCurrentPath()
 {
@@ -120,7 +101,7 @@ bool Python_Finalize()
 void Python_RegisterModule()  // 在Py_Initialize之前调用
 {
     register_util_functions();
-    xlog(1, "register python module");
+    logger::info("register python module");
 }
 
 vector<string> ParseArgs(const char* args)
@@ -144,7 +125,7 @@ int Python_InitScript(const char *scriptroot)
         return -1;
     d = PyModule_GetDict(m);
     v = PyRun_StringFlags(script_str.c_str(), Py_file_input, d, d, NULL);
-    if (v == NULL) 
+    if (v == NULL)
     {
         PyErr_Print();
         return -1;
@@ -182,7 +163,7 @@ int Python_RunFunction(const char* pythonfile, const char* funcname, const char*
                 {
                     Py_DECREF(pArgs);
                     Py_DECREF(pModule);
-                    fprintf(stderr, "Cannot convert argument\n");
+                    logger::error("Cannot convert argument");
                     return 1;
                 }
                 /* pValue reference stolen here: */
@@ -192,7 +173,7 @@ int Python_RunFunction(const char* pythonfile, const char* funcname, const char*
             Py_DECREF(pArgs);
             if (pValue != NULL)
             {
-                printf("Result of call: %ld\n", PyLong_AsLong(pValue));
+                logger::debug("Result of call: {}", PyLong_AsLong(pValue));
                 Py_DECREF(pValue);
             }
             else
@@ -200,7 +181,7 @@ int Python_RunFunction(const char* pythonfile, const char* funcname, const char*
                 Py_DECREF(pFunc);
                 Py_DECREF(pModule);
                 PyErr_Print();
-                fprintf(stderr,"Call failed\n");
+                logger::error("Call failed");
                 return 1;
             }
         }
@@ -208,7 +189,7 @@ int Python_RunFunction(const char* pythonfile, const char* funcname, const char*
         {
             if (PyErr_Occurred())
                 PyErr_Print();
-            fprintf(stderr, "Cannot find function \"%s\"\n", funcname);
+            logger::error("Cannot find function \"{}\"", funcname);
         }
         Py_XDECREF(pFunc);
         Py_DECREF(pModule);
@@ -216,7 +197,7 @@ int Python_RunFunction(const char* pythonfile, const char* funcname, const char*
     else
     {
         PyErr_Print();
-        fprintf(stderr, "Failed to load \"%s\"\n", pythonfile);
+        logger::error("Failed to load \"{}\"", pythonfile);
         return 1;
     }
     return 0;
