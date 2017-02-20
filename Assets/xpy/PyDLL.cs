@@ -83,6 +83,10 @@ namespace XPython
             Python_InitScript(scriptroot);
             Python_RunFunction("main", "main", "");
             Debug.Log("Python is embedded: " + isEmbedded);
+        }
+
+        public static void Destroy()
+        {
             Python_Finalize();
         }
     }

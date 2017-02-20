@@ -15,7 +15,12 @@ namespace XPython
         {
             Debug.Log("PyEnv Init .................");
             PyDLL.Init();
+        }
 
+        public void Destroy()
+        {
+            Debug.Log("PyEnv Destroy .................");
+            PyDLL.Destroy();
         }
     }
 }
