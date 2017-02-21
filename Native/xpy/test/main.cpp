@@ -26,12 +26,21 @@ void char_array_test()
 
 void python_embedding_test()
 {
-    cout << Native_GetCurrentPath() << endl;
+    const char* current_path = Native_GetCurrentPath();
+    string curr_path = current_path;
+    Native_ReleaseMemory((void*)current_path);
+    current_path = nullptr;
+    cout << curr_path << endl;
     char *program = "python36_xpy";
+    string home = curr_path + "/../../xpy/external/Python-3.6.0";
+    string scriptroot = curr_path + "/../../../Assets/Script";
     Python_RegisterModule();
-    Python_Start(program, "G:/GameDev/unity/xpy/native/xpy/external/Python-3.6.0");
+    Python_Start(program, home.c_str());
     std::cout << Python_CheckInterpreter(program) << "\n";
-    Python_InitScript("G:/GameDev/unity/xpy/Assets/Script");
+    Python_InitScript(scriptroot.c_str());
+    string script_str = "import sys\n"
+        "print(sys.path)\n";
+    Python_RunString(script_str.c_str());
     Python_RunFunction("main", "main", "");
     Python_Finalize();
 }

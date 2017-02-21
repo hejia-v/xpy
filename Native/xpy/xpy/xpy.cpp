@@ -11,6 +11,7 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
 
 //#define  BOOST_DISABLE_ASSERTS
@@ -115,24 +116,25 @@ vector<string> ParseArgs(const char* args)
 
 int Python_InitScript(const char *scriptroot)
 {
-    logger::info("read pythonfile begin");
-    ifstream infile;
-    infile.open(scriptroot + string("/main.py"));
-    string ret = "";
-    string s;
-    while (getline(infile, s))
-    {
-        ret += s + "\n";
-    }
-    infile.close();
-    logger::info(ret.c_str());
-    logger::info("read pythonfile end");
-    logger::info(scriptroot);
+    fs::path f(scriptroot);
+    string root = f.lexically_normal().make_preferred().string();
+    boost::replace_all(root, "\\", "/");  // python识别不了反斜杠
+    logger::info("script root: {}", root.c_str());
 
-    string script_str = "g_ScriptRoot = '" + string(scriptroot) + "'\n"
+    string script_str = "g_ScriptRoot = '" + root + "'\n"
         "import sys\n"
         "sys.path.append(g_ScriptRoot)\n";
 
+    if (0 != Python_RunString(script_str.c_str()))
+    {
+        logger::error("Failed to init python script");
+    }
+
+    return 0;
+}
+
+int Python_RunString(const char* script)
+{
     PyObject *m, *d, *v;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
@@ -141,11 +143,11 @@ int Python_InitScript(const char *scriptroot)
         return -1;
     }
     d = PyModule_GetDict(m);
-    v = PyRun_StringFlags(script_str.c_str(), Py_file_input, d, d, NULL);
+    v = PyRun_StringFlags(script, Py_file_input, d, d, NULL);
     if (v == NULL)
     {
         PyErr_Print();
-        logger::error("Failed to init python script");
+        logger::error("Failed to run python script");
         return -1;
     }
     Py_DECREF(v);

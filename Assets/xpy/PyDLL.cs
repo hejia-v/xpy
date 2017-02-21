@@ -49,6 +49,9 @@ namespace XPython
         public static extern int Python_InitScript([MarshalAs(UnmanagedType.LPStr)] string pythonfile);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Python_RunString([MarshalAs(UnmanagedType.LPStr)] string script);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
             [MarshalAs(UnmanagedType.LPStr)] string funcname, [MarshalAs(UnmanagedType.LPStr)] string args);
 
@@ -74,12 +77,18 @@ namespace XPython
             string path = GetPath();
             Debug.Log(path);
 
-            Python_RegisterModule();
             string program = "python36_xpy";
+#if UNITY_EDITOR
             string python_home = path + "/native/xpy/external/Python-3.6.0";
+            string scriptroot = path + "/Assets/Script";
+#else
+            // TODO:
+            string python_home = "";
+            string scriptroot = "";
+#endif
+            Python_RegisterModule();
             Python_Start(program, python_home);
             bool isEmbedded = Python_CheckInterpreter(program);
-            string scriptroot = path + "/Assets/Script";
             Python_InitScript(scriptroot);
             Python_RunFunction("main", "main", "");
             Debug.Log("Python is embedded: " + isEmbedded);
