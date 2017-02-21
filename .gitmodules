@@ -1,0 +1,3 @@
+[submodule "Native/xpy/external/fmt"]
+	path = Native/xpy/external/fmt
+	url = https://github.com/fmtlib/fmt
