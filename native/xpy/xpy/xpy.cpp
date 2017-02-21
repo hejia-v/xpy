@@ -115,6 +115,20 @@ vector<string> ParseArgs(const char* args)
 
 int Python_InitScript(const char *scriptroot)
 {
+    logger::info("read pythonfile begin");
+    ifstream infile;
+    infile.open(scriptroot + string("/main.py"));
+    string ret = "";
+    string s;
+    while (getline(infile, s))
+    {
+        ret += s + "\n";
+    }
+    infile.close();
+    logger::info(ret.c_str());
+    logger::info("read pythonfile end");
+    logger::info(scriptroot);
+
     string script_str = "g_ScriptRoot = '" + string(scriptroot) + "'\n"
         "import sys\n"
         "sys.path.append(g_ScriptRoot)\n";
@@ -122,12 +136,16 @@ int Python_InitScript(const char *scriptroot)
     PyObject *m, *d, *v;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
+    {
+        logger::error("Failed to import __main__");
         return -1;
+    }
     d = PyModule_GetDict(m);
     v = PyRun_StringFlags(script_str.c_str(), Py_file_input, d, d, NULL);
     if (v == NULL)
     {
         PyErr_Print();
+        logger::error("Failed to init python script");
         return -1;
     }
     Py_DECREF(v);

@@ -4,7 +4,7 @@ using UnityEditor;
 using System.IO;
 
 [CustomEditor(typeof(UnityEditor.DefaultAsset))]
-public class LuaInspector : Editor
+public class PythonInspector : Editor
 {
     public override void OnInspectorGUI()
     {
