@@ -27,4 +27,9 @@ public class UnityTestDll : MonoBehaviour
     {
         GUI.Label(new Rect(1, 1, 600, 400), "this dll i = 5+7, i is");
     }
+
+    void OnDestroy()
+    {
+        pyEnv.Destroy();
+    }
 }

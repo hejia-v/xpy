@@ -21,7 +21,22 @@ namespace XPython
 
         private static void DebugMethod(int level, string message)
         {
-            Debug.Log("xpy: " + message);
+            switch (level)
+            {
+                case 1:
+                case 2:
+                    Debug.Log("xpy: " + message);
+                    break;
+                case 3:
+                    Debug.LogWarning("xpy: " + message);
+                    break;
+                case 4:
+                    Debug.LogError("xpy: " + message);
+                    break;
+                default:
+                    Debug.Log("xpy: " + message);
+                    break;
+            }
         }
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]

@@ -36,14 +36,14 @@ namespace xpy
         }
 
         template<typename... Args>
-        static void error(const char *format, Args... args)
+        static void warnning(const char *format, Args... args)
         {
             std::string s = fmt::format(format, args...);
             xlog(3, s.c_str());
         }
 
         template<typename... Args>
-        static void warnning(const char *format, Args... args)
+        static void error(const char *format, Args... args)
         {
             std::string s = fmt::format(format, args...);
             xlog(4, s.c_str());

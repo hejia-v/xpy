@@ -75,6 +75,7 @@ void Python_Start(const char* program, const char* home)
     Py_SetPythonHome(g_PyHomePath);
 
     Py_Initialize();
+    //TODO: Py_IsInitialized检查是否成功, 如果失败，将stderr里的信息提取出来
     PyRun_SimpleString("print('python start!')");
     PyRun_SimpleString("from time import time,ctime\n"
         "print('Today is', ctime(time()))\n");

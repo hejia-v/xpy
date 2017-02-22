@@ -11,16 +11,16 @@ import emb
 
 class OutPut:
     def __init__(self):
-        self.__curLineWrtCnt = 0
+        self._buffer = 'python: '
 
     def write(self, s):
-        if str(s) == "\n":
-            self.__curLineWrtCnt = -1
-        if self.__curLineWrtCnt == 0:
-            emb.writelog(1, "python:  ")
-        self.__curLineWrtCnt += 1
-        # TODO: 前缀、消息和换行符合成一个字符串，再发到unity的console
-        emb.writelog(1, str(s))
+        s = str(s)
+        self._buffer += s
+
+        if s == "\n":
+            emb.writelog(1, self._buffer)
+            self._buffer = ''
+            self._buffer = 'python: '
 
     def writeline(self, sl):
         map(self.write, sl)
@@ -30,8 +30,17 @@ class OutPut:
 
 
 class ErrOutPut:
+    def __init__(self):
+        self._buffer = ''
+
     def write(self, s):
-        emb.writelog(5, str(s))
+        # TODO: 待优化
+        s = str(s)
+        self._buffer += s
+
+        if s == "\n":
+            emb.writelog(4, self._buffer)
+            self._buffer = ''
 
     def writeline(self, sl):
         map(self.write, sl)
