@@ -16,7 +16,7 @@ extern "C" {
 
 namespace xpy
 {
-    void xlog(int level, const char* message);
+    void xlog(int level, const char* message, bool newline = true);
 
     class logger
     {

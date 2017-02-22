@@ -128,6 +128,7 @@ int Python_InitScript(const char *scriptroot)
     if (0 != Python_RunString(script_str.c_str()))
     {
         logger::error("Failed to init python script");
+        return -1;
     }
 
     return 0;

@@ -5,5 +5,5 @@
 def numargs():
     return 0
 
-def writelog(msg):
+def writelog(level, msg):
     pass

@@ -16,11 +16,12 @@ static PyObject *emb_numargs(PyObject *self, PyObject *args)
 
 static PyObject * emb_writelog(PyObject *self, PyObject *args)
 {
+    int level;
     const char *msg;
 
-    if (!PyArg_ParseTuple(args, "s", &msg))
+    if (!PyArg_ParseTuple(args, "is", &level, &msg))
         return NULL;
-    xlog(1, msg);
+    xlog(level, msg, false);
     return Py_None;
 }
 

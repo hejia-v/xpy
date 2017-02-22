@@ -13,7 +13,7 @@ void RegisterDebugCallback(DebugCallback callback)
     }
 }
 
-void xpy::xlog(int level, const char* message)
+void xpy::xlog(int level, const char* message, bool newline)
 {
     if (g_DebugCallback)
     {
@@ -21,6 +21,10 @@ void xpy::xlog(int level, const char* message)
     }
     else
     {
-        cout << message << endl;
+        cout << message;
+        if (newline)
+        {
+            cout << "\n";
+        }
     }
 }
