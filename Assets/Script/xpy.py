@@ -7,3 +7,6 @@ def numargs():
 
 def writelog(level, msg):
     pass
+
+def csharpcall(func, *arg):
+    return ""

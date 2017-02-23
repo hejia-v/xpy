@@ -40,7 +40,8 @@ void python_embedding_test()
     Python_InitScript(scriptroot.c_str());
     string script_str = "import sys\n"
         "print(sys.path)\n";
-    Python_RunString(script_str.c_str());
+    //Python_RunString(script_str.c_str());
+    Python_InitSharpCall(nullptr);
     Python_RunFunction("main", "main", "");
     Python_Finalize();
 }

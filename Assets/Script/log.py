@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 import sys
-import emb
+import xpy
 
 
 class OutPut:
@@ -18,7 +18,7 @@ class OutPut:
         self._buffer += s
 
         if s == "\n":
-            emb.writelog(1, self._buffer)
+            xpy.writelog(1, self._buffer)
             self._buffer = ''
             self._buffer = 'python: '
 
@@ -39,7 +39,7 @@ class ErrOutPut:
         self._buffer += s
 
         if s == "\n":
-            emb.writelog(4, self._buffer)
+            xpy.writelog(4, self._buffer)
             self._buffer = ''
 
     def writeline(self, sl):

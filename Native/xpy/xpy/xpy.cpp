@@ -3,7 +3,7 @@
 // on some systems, you must include Python.h before any standard headers are included
 #include "xpy.h"
 #include "log.h"
-#include "pybind_util_manual.h"
+#include "pybind_xpy_manual.h"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -23,7 +23,6 @@ using namespace xpy;
 
 static wchar_t* g_PyProgramName = nullptr;
 static wchar_t* g_PyHomePath = nullptr;
-
 
 const char* Native_GetCurrentPath()
 {
@@ -75,7 +74,7 @@ void Python_Start(const char* program, const char* home)
     Py_SetPythonHome(g_PyHomePath);
 
     Py_Initialize();
-    //TODO: Py_IsInitialized检查是否成功, 如果失败，将stderr里的信息提取出来
+    //TODO: Py_IsInitialized检查是否成功, 如果失败，将stderr里的信息提取出来,Python_Start加一个void **err参数, 输出错误信息
     PyRun_SimpleString("print('python start!')");
     PyRun_SimpleString("from time import time,ctime\n"
         "print('Today is', ctime(time()))\n");
@@ -102,7 +101,7 @@ bool Python_Finalize()
 
 void Python_RegisterModule()  // 在Py_Initialize之前调用
 {
-    register_util_functions();
+    register_xpy_functions();
     logger::info("register python module");
 }
 
@@ -156,6 +155,31 @@ int Python_RunString(const char* script)
 
     return 0;
 }
+
+
+int Python_InitSharpCall(csharp_callback cb)
+{
+    //Python_RegisterModule中注册python方法，python中调用sharp
+    //Python_InitScript检查sharppython类中的几个成员函数
+    init_csharp_python_funcs(cb);  // 注册sharp的回调
+
+    PyObject *pName, *pModule, *pFunc;
+    pModule=PyImport_ImportModule("sharp");
+    if (pModule != NULL)
+    {
+
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
 
 int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args)
 {
