@@ -42,3 +42,4 @@ native/xpy/xtest
 **/Python-3.6.0/externals
 *.VC.db
 *~$*
+**/sharp/obj

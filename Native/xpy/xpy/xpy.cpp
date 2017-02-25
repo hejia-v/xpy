@@ -60,7 +60,7 @@ void Python_Start(const char* program, const char* home)
     }
     g_PyProgramName = new wchar_t[len];
     mbstowcs_s(&converted, g_PyProgramName, len, program, _TRUNCATE);
-    Py_SetProgramName(g_PyProgramName); /* optional but recommended */
+    Py_SetProgramName(g_PyProgramName);  /* optional but recommended */
 
     len = strlen(home) + 1;
     converted = 0;
