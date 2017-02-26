@@ -4,6 +4,8 @@
 #include <string>
 using namespace xpy;
 
+#define MAXRET 256
+
 static int numargs = 5;
 static csharp_callback sharp_cb = nullptr;
 
@@ -211,23 +213,19 @@ static PyObject * xpy_csharpcall(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    var *vs = new var[tupleSize];
+    var arg[MAXRET];
     logger::info("xpy_csharpcall argc: {}", tupleSize);
-    if (MarshalArguments(vs, tupleSize, args) != 1)
+    if (MarshalArguments(arg, tupleSize, args) != 1)
     {
-        delete[] vs;
-        vs = nullptr;
         return NULL; // when use PyErr_SetString in a c extension function, you must return NULL.
     }
 
     string_pusher sp = {0};
     if (sharp_cb)
     {
-        int rt = sharp_cb((int)tupleSize, vs, &sp);
+        int rt = sharp_cb((int)tupleSize, arg, &sp);
     }
 
-    delete[] vs;
-    vs = nullptr;
     return Py_None;
 }
 

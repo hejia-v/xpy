@@ -2,10 +2,40 @@
 using System.Text;
 using System.Runtime.InteropServices;
 
+class MonoPInvokeCallbackAttribute : System.Attribute
+{
+    public MonoPInvokeCallbackAttribute(Type t) { }
+}
+
 namespace XPython
 {
     public class PyDLL
     {
+        public enum var_type
+        {
+            NONE = 0,
+            INTEGER = 1,
+            INT64 = 2,
+            REAL = 3,
+            BOOLEAN = 4,
+            STRING = 5,
+            POINTER = 6,
+            PYTHONOBJ = 7,
+            SHARPOBJ = 8,
+        };
+        public struct var
+        {
+            public var_type type;
+            public int d;
+            public long d64;
+            public double f;
+            public IntPtr ptr;
+        };
+        public struct PyObject
+        {
+            public int id;
+        };
+
 
 #if UNITY_IPHONE && !UNITY_EDITOR
         const string DLL = "__Internal";
@@ -14,6 +44,11 @@ namespace XPython
 #else
         const string DLL = "xpy";
 #endif
+
+        const int max_args = 256;
+        static SharpObject objects = new SharpObject();	
+
+        public delegate string SharpFunction(int n, var[] argv);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void DebugCallback(int level, string message);
@@ -51,8 +86,37 @@ namespace XPython
         public static extern int Python_RunString([MarshalAs(UnmanagedType.LPStr)] string script);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Python_InitSharpCall(Callback cb);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
             [MarshalAs(UnmanagedType.LPStr)] string funcname, [MarshalAs(UnmanagedType.LPStr)] string args);
+
+        delegate int Callback(int argc, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeConst = max_args)] var[] argv, IntPtr sud);
+
+        [MonoPInvokeCallback(typeof(Callback))]
+        static int CallSharp(int argc, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeConst = max_args)] var[] argv, IntPtr sud)
+        {
+            try
+            {
+                SharpFunction f = (SharpFunction)objects.Get(argv[0].d);
+                string ret = f(argc, argv);
+                if (ret != null)
+                {
+                    // push string into L for passing C sharp string to lua.
+                    //if (c_pushstring(sud, ret) == 0)
+                    //{
+                    //    throw new ArgumentException("Push string failed");
+                    //}
+                }
+                return (int)argv[0].type;
+            }
+            catch (Exception ex)
+            {
+                //c_pushstring(sud, ex.ToString());
+                return -1;
+            }
+        }
 
         public static string GetPath()
         {
@@ -92,6 +156,7 @@ namespace XPython
             Python_Start(program, python_home);
             bool isEmbedded = Python_CheckInterpreter(program);
             Python_InitScript(scriptroot);
+            Python_InitSharpCall(null);
             Python_RunFunction("main", "main", "");
             logger.info("Python is embedded: " + isEmbedded);
         }

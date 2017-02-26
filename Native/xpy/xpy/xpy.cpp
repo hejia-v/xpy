@@ -156,7 +156,6 @@ int Python_RunString(const char* script)
     return 0;
 }
 
-// TODO: 检查Python api调用时的引用计数,  也可以调试看一下
 int Python_InitSharpCall(csharp_callback cb)
 {
     int ret = init_csharp_python_funcs(cb);  // 注册sharp的回调
