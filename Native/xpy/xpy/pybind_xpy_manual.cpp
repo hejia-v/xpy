@@ -1,6 +1,7 @@
 #include <Python.h>
 #include "xpy.h"
 #include "log.h"
+#include "fmt/format.h"
 #include <string>
 using namespace xpy;
 
@@ -65,6 +66,81 @@ int init_csharp_python_funcs(csharp_callback cb)
     return ret;
 }
 
+const char *get_python_function(const char *module, const char *funcname, int *id)
+{
+    PyObject *pModule, *pFunc, *pType, *pStr, *pArgs, *pValue;
+    std::string s;
+
+    static char *err = nullptr; // is it ok?
+    if (err != nullptr)
+    {
+        delete[] err;
+        err = nullptr;
+    }
+
+    *id = 0;
+
+    pModule = PyImport_ImportModule(module);
+    if (pModule != NULL)
+    {
+        pFunc = PyObject_GetAttrString(pModule, funcname);
+        if (!pFunc)
+        {
+            s = fmt::format("Cannot find function \"{}\"", funcname);
+            err = new char[s.length() + 1];
+            strcpy(err, s.c_str());
+            return err;
+        }
+        if (!PyCallable_Check(pFunc))
+        {
+            pType = PyObject_Type(pFunc);
+            pStr = PyObject_Str(pType);
+            const char *type_name = PyUnicode_AsUTF8(pStr);
+            s = fmt::format("Invalid type {} for [{}.{}]", type_name, module, funcname);
+            Py_DECREF(pStr);
+            Py_DECREF(pType);
+            err = new char[s.length() + 1];
+            strcpy(err, s.c_str());
+            return err;
+        }
+
+        pArgs = PyTuple_New(1);
+        PyTuple_SetItem(pArgs, 0, pFunc);
+        pValue = PyObject_CallObject(func_proxy, pArgs);
+        Py_DECREF(pArgs);
+
+        if (pValue == NULL)
+        {
+            return "call sharp._proxy failed";
+        }
+
+        PyObject *pRet, *pRetValue;
+        pRet = PyTuple_GetItem(pValue, 0);
+        const char *type = PyUnicode_AsUTF8(pRet);
+
+        if (type == NULL || type[0] != 'P')
+        {
+            return "Not a python object";
+        }
+
+        pRet = PyTuple_GetItem(pValue, 1);
+        pRetValue = PyNumber_Long(pRet);
+        long n = PyLong_AsLong(pRetValue);
+        *id = n;
+
+        Py_DECREF(pRetValue);
+        Py_DECREF(pValue);
+        Py_DECREF(pFunc);
+        Py_DECREF(pModule);
+    }
+    else
+    {
+        return "Failed to load module: \"sharp\"";
+    }
+
+    return NULL;
+}
+
 /* Return the number of arguments of the application command line */
 static PyObject *xpy_numargs(PyObject *self, PyObject *args)
 {
@@ -84,7 +160,7 @@ static PyObject * xpy_writelog(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-int MarshalArguments(var *v, Py_ssize_t size, PyObject *args)
+int marshal_arguments(var *v, Py_ssize_t size, PyObject *args)
 {
     PyObject *pItem, *pValue;
     PyObject *pArgs;
@@ -215,7 +291,7 @@ static PyObject * xpy_csharpcall(PyObject *self, PyObject *args)
 
     var arg[MAXRET];
     logger::info("xpy_csharpcall argc: {}", tupleSize);
-    if (MarshalArguments(arg, tupleSize, args) != 1)
+    if (marshal_arguments(arg, tupleSize, args) != 1)
     {
         return NULL; // when use PyErr_SetString in a c extension function, you must return NULL.
     }

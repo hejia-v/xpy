@@ -162,6 +162,12 @@ int Python_InitSharpCall(csharp_callback cb)
     return ret;
 }
 
+const char *Python_GetFunction(const char *module, const char *funcname, int *id)
+{
+    const char *error = get_python_function(module, funcname, id);
+    return error;
+}
+
 int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args)
 {
     PyObject *pName, *pModule, *pFunc;

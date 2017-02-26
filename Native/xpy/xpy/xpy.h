@@ -17,5 +17,6 @@ extern "C" {
     EXPORT_API int Python_InitScript(const char* pythonfile);
     EXPORT_API int Python_InitSharpCall(csharp_callback cb);
     EXPORT_API int Python_RunString(const char* script);
+    EXPORT_API const char *Python_GetFunction(const char *module, const char *funcname, int *id);
     EXPORT_API int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args);
 }

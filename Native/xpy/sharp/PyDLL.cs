@@ -86,7 +86,10 @@ namespace XPython
         public static extern int Python_RunString([MarshalAs(UnmanagedType.LPStr)] string script);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-        private static extern int Python_InitSharpCall(Callback cb);
+        static extern int Python_InitSharpCall(Callback cb);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr Python_GetFunction([MarshalAs(UnmanagedType.LPStr)] string module, [MarshalAs(UnmanagedType.LPStr)] string funcname, out int id);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
@@ -103,7 +106,7 @@ namespace XPython
                 string ret = f(argc, argv);
                 if (ret != null)
                 {
-                    // push string into L for passing C sharp string to lua.
+                    // push string into P for passing C sharp string to python.
                     //if (c_pushstring(sud, ret) == 0)
                     //{
                     //    throw new ArgumentException("Push string failed");
@@ -118,7 +121,7 @@ namespace XPython
             }
         }
 
-        public static string GetPath()
+        public static string GetCurrentPath()
         {
             IntPtr strPtr = Native_GetCurrentPath();
             string str = Marshal.PtrToStringAnsi(strPtr);
@@ -137,7 +140,7 @@ namespace XPython
             // Call the API passing along the function pointer.
             RegisterDebugCallback(intptr_delegate);
 
-            string path = GetPath();
+            string path = GetCurrentPath();
             logger.info(path);
 
             string program = "python36_xpy";
@@ -159,6 +162,31 @@ namespace XPython
             Python_InitSharpCall(null);
             Python_RunFunction("main", "main", "");
             logger.info("Python is embedded: " + isEmbedded);
+
+            // test
+            PyObject load = GetFunction("main", "load");
+        }
+
+        public static PyObject GetFunction(string module, string funcname)
+        {
+            int id = 0;
+            IntPtr err = Python_GetFunction(module, funcname, out id);  // err will release when call Python_GetFunction next time.
+            if (id != 0)
+            {
+                // succ 
+                return new PyObject { id = id };
+            }
+            else
+            {
+                if (err == IntPtr.Zero)
+                {
+                    return new PyObject(); // nil
+                }
+                else
+                {
+                    throw new ArgumentException(Marshal.PtrToStringAnsi(err));
+                }
+            }
         }
 
         public static void Destroy()
