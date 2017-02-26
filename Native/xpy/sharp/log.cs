@@ -38,7 +38,7 @@ namespace XPython
 #if STANDALONE
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(msg);
+            Console.WriteLine("c#: " + msg);
             Console.ResetColor();
 #else
             Debug.Log("xpy: " + msg);
@@ -50,7 +50,7 @@ namespace XPython
 #if STANDALONE
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine(msg);
+            Console.WriteLine("c#: " + msg);
             Console.ResetColor();
 #else
             Debug.Log("xpy: " + msg);
@@ -62,7 +62,7 @@ namespace XPython
 #if STANDALONE
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(msg);
+            Console.WriteLine("c#: " + msg);
             Console.ResetColor();
 #else
             Debug.LogWarning("xpy: " + msg);
@@ -74,7 +74,7 @@ namespace XPython
 #if STANDALONE
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(msg);
+            Console.WriteLine("c#: " + msg);
             Console.ResetColor();
 #else
             Debug.LogError("xpy: " + msg);

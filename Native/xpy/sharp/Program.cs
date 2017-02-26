@@ -11,6 +11,7 @@ namespace sharp
     {
         static void Main(string[] args)
         {
+            // TODO: memory leak test
             PyEnv pyEnv = new PyEnv();
             pyEnv.Init();
             pyEnv.Destroy();

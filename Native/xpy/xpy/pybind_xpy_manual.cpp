@@ -191,7 +191,6 @@ int MarshalArguments(var *v, Py_ssize_t size, PyObject *args)
             }
             Py_DECREF(pValue);
         }
-        Py_DECREF(pItem);
 
         if (PyErr_Occurred())
         {
@@ -213,7 +212,7 @@ static PyObject * xpy_csharpcall(PyObject *self, PyObject *args)
     }
 
     var *vs = new var[tupleSize];
-    logger::info("sc: {}", tupleSize);
+    logger::info("xpy_csharpcall argc: {}", tupleSize);
     if (MarshalArguments(vs, tupleSize, args) != 1)
     {
         delete[] vs;
@@ -230,7 +229,6 @@ static PyObject * xpy_csharpcall(PyObject *self, PyObject *args)
     delete[] vs;
     vs = nullptr;
     return Py_None;
-    //xlog(level, msg, false);
 }
 
 static PyMethodDef EmbMethods[] = {
