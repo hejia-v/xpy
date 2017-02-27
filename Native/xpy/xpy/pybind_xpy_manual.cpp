@@ -89,6 +89,7 @@ const char *get_python_function(const char *module, const char *funcname, int *i
             s = fmt::format("Cannot find function \"{}\"", funcname);
             err = new char[s.length() + 1];
             strcpy(err, s.c_str());
+            Py_DECREF(pModule);
             return err;
         }
         if (!PyCallable_Check(pFunc))
@@ -101,16 +102,21 @@ const char *get_python_function(const char *module, const char *funcname, int *i
             Py_DECREF(pType);
             err = new char[s.length() + 1];
             strcpy(err, s.c_str());
+            Py_DECREF(pFunc);
+            Py_DECREF(pModule);
             return err;
         }
 
         pArgs = PyTuple_New(1);
-        PyTuple_SetItem(pArgs, 0, pFunc);
+        PyTuple_SetItem(pArgs, 0, pFunc);  // PyTuple_SetItem ¡°steals¡± a reference to pFunc.
+        Py_INCREF(pFunc);
         pValue = PyObject_CallObject(func_proxy, pArgs);
         Py_DECREF(pArgs);
 
         if (pValue == NULL)
         {
+            Py_DECREF(pFunc);
+            Py_DECREF(pModule);
             return "call sharp._proxy failed";
         }
 
@@ -120,6 +126,9 @@ const char *get_python_function(const char *module, const char *funcname, int *i
 
         if (type == NULL || type[0] != 'P')
         {
+            Py_DECREF(pValue);
+            Py_DECREF(pFunc);
+            Py_DECREF(pModule);
             return "Not a python object";
         }
 

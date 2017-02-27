@@ -180,7 +180,7 @@ namespace XPython
             {
                 if (err == IntPtr.Zero)
                 {
-                    return new PyObject(); // nil
+                    return new PyObject(); // None
                 }
                 else
                 {
