@@ -37,12 +37,12 @@ const char* Native_GetCurrentPath()
     return pBuffer;
 }
 
-void Native_ReleaseMemory(void *pBuffer)
+void Native_ReleaseMemory(void **pBuffer)
 {
-    if (nullptr != pBuffer)
+    if (nullptr != *pBuffer)
     {
-        delete pBuffer;
-        pBuffer = nullptr;
+        delete *pBuffer;
+        *pBuffer = nullptr;
     }
 }
 
@@ -166,6 +166,11 @@ const char *Python_GetFunction(const char *module, const char *funcname, int *id
 {
     const char *error = get_python_function(module, funcname, id);
     return error;
+}
+
+int Python_CallFunction(int argc, var *argv, int strc, const char **strs, const char **err)
+{
+    return call_python_function(argc, argv, strc, strs, err);
 }
 
 int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args)

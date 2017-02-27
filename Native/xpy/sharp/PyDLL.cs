@@ -46,7 +46,9 @@ namespace XPython
 #endif
 
         const int max_args = 256;
-        static SharpObject objects = new SharpObject();	
+        static var[] args = new var[max_args];
+        static string[] strs = new string[max_args];
+        static SharpObject objects = new SharpObject();
 
         public delegate string SharpFunction(int n, var[] argv);
 
@@ -62,7 +64,7 @@ namespace XPython
         private static extern void RegisterDebugCallback(IntPtr callback);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Native_ReleaseMemory(IntPtr pbuffer);
+        public static extern void Native_ReleaseMemory(out IntPtr pbuffer);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Native_GetCurrentPath();
@@ -90,6 +92,10 @@ namespace XPython
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr Python_GetFunction([MarshalAs(UnmanagedType.LPStr)] string module, [MarshalAs(UnmanagedType.LPStr)] string funcname, out int id);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        static extern int Python_CallFunction(int argc, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeConst = max_args)] var[] argv,
+            int strc, [In, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 3)] string[] strs, out IntPtr err);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
@@ -125,7 +131,7 @@ namespace XPython
         {
             IntPtr strPtr = Native_GetCurrentPath();
             string str = Marshal.PtrToStringAnsi(strPtr);
-            Native_ReleaseMemory(strPtr);
+            Native_ReleaseMemory(out strPtr);
             return str;
         }
 
@@ -165,6 +171,7 @@ namespace XPython
 
             // test
             PyObject load = GetFunction("main", "load");
+            PyObject f = (PyObject)CallFunction(load, "return ...")[0];
         }
 
         public static PyObject GetFunction(string module, string funcname)
@@ -187,6 +194,146 @@ namespace XPython
                     throw new ArgumentException(Marshal.PtrToStringAnsi(err));
                 }
             }
+        }
+
+        static int pushvalue(ref var v, object arg)
+        {
+            if (arg == null)
+            {
+                v.type = (int)var_type.NONE;
+            }
+            else
+            {
+                Type t = arg.GetType();
+                if (t == typeof(int))
+                {
+                    v.type = var_type.INTEGER;
+                    v.d = (int)arg;
+                }
+                else if (t == typeof(long))
+                {
+                    v.type = var_type.INTEGER;
+                    v.d64 = (long)arg;
+                }
+                else if (t == typeof(float))
+                {
+                    v.type = var_type.REAL;
+                    v.f = (float)arg;
+                }
+                else if (t == typeof(double))
+                {
+                    v.type = var_type.REAL;
+                    v.f = (double)arg;
+                }
+                else if (t == typeof(bool))
+                {
+                    v.type = var_type.BOOLEAN;
+                    v.d = (bool)arg ? 1 : 0;
+                }
+                else if (t == typeof(string))
+                {
+                    v.type = var_type.STRING;
+                    return 2;   // string
+                }
+                else if (t == typeof(PyObject))
+                {
+                    v.type = var_type.PYTHONOBJ;
+                    v.d = ((PyObject)arg).id;
+                }
+                else if (t.IsClass)
+                {
+                    v.type = var_type.SHARPOBJ;
+                    v.d = objects.Query(arg);
+                }
+                else
+                {
+                    return 0;   // error
+                }
+            }
+            return 1;
+        }
+
+        public static object[] CallFunction(PyObject func, params object[] arg)
+        {
+            int n = arg.Length;
+            if (n + 1 > max_args)
+            {
+                throw new ArgumentException("Too many args");
+            }
+            args[0].type = var_type.PYTHONOBJ;
+            args[0].d = func.id;
+
+            int sn = 0;
+            for (int i = 0; i < n; i++)
+            {
+                int r = pushvalue(ref args[i + 1], arg[i]);
+                switch (r)
+                {
+                    case 0:
+                        throw new ArgumentException(String.Format("Unsupport type : {1} at {0}", i, arg[i].GetType()));
+                    case 1:
+                        break;
+                    case 2:
+                        // string
+                        args[i + 1].d = sn;
+                        strs[sn] = (string)arg[i];
+                        ++sn;
+                        break;
+                }
+            }
+            IntPtr err = IntPtr.Zero;
+            int retn = Python_CallFunction(n + 1, args, sn, strs, out err);
+            if (retn < 0)
+            {
+                string e = Marshal.PtrToStringAnsi(err);
+                Native_ReleaseMemory(out err);
+                throw new ArgumentException(e);
+            }
+            if (retn == 0)
+            {
+                return null;
+            }
+            object[] ret = new object[retn];
+            for (int i = 0; i < retn; i++)
+            {
+                switch (args[i].type)
+                {
+                    case var_type.NONE:
+                        ret[i] = null;
+                        break;
+                    case var_type.INTEGER:
+                        ret[i] = args[i].d;
+                        break;
+                    case var_type.INT64:
+                        ret[i] = args[i].d64;
+                        break;
+                    case var_type.REAL:
+                        ret[i] = args[i].f;
+                        break;
+                    case var_type.BOOLEAN:
+                        ret[i] = (args[i].d != 0) ? true : false;
+                        break;
+                    case var_type.STRING:
+                        // todo: encoding
+                        ret[i] = Marshal.PtrToStringAnsi(args[i].ptr);
+                        break;
+                    case var_type.POINTER:
+                        ret[i] = args[i].ptr;
+                        break;
+                    case var_type.PYTHONOBJ:
+                        ret[i] = new PyObject { id = args[i].d };
+                        break;
+                    case var_type.SHARPOBJ:
+                        ret[i] = objects.Get(args[i].d);
+                        if (ret[i] == null)
+                        {
+                            throw new ArgumentException("Invalid sharp object");
+                        }
+                        break;
+                }
+            }
+
+            return ret;
         }
 
         public static void Destroy()

@@ -4,7 +4,7 @@
 #ifdef _WINDOWS
 # define EXPORT_API __declspec (dllexport)
 #else
-# define EXPORT_API 
+# define EXPORT_API
 #endif
 
 enum class var_type
@@ -35,3 +35,11 @@ struct string_pusher
 };
 
 typedef int(*csharp_callback)(int argc, var *argv, string_pusher *sp);
+
+#define error_nc(err, msg)                 \
+    {                                      \
+        const char *s = msg;               \
+        char *e = new char[strlen(s) + 1]; \
+        strcpy(e, s);                      \
+        err = e;                           \
+    }

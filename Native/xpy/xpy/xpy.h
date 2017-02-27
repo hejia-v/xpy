@@ -9,7 +9,7 @@
 
 extern "C" {
     EXPORT_API const char* Native_GetCurrentPath();
-    EXPORT_API void Native_ReleaseMemory(void *pBuffer);
+    EXPORT_API void Native_ReleaseMemory(void **pBuffer);
     EXPORT_API void Python_RegisterModule();
     EXPORT_API void Python_Start(const char* program, const char* home);
     EXPORT_API bool Python_CheckInterpreter(const char *program);
@@ -18,5 +18,6 @@ extern "C" {
     EXPORT_API int Python_InitSharpCall(csharp_callback cb);
     EXPORT_API int Python_RunString(const char* script);
     EXPORT_API const char *Python_GetFunction(const char *module, const char *funcname, int *id);
+    EXPORT_API int Python_CallFunction(int argc, var *argv, int strc, const char **strs, const char **err);
     EXPORT_API int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args);
 }

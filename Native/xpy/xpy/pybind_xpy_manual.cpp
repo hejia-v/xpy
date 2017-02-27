@@ -1,4 +1,4 @@
-#include <Python.h>
+Ôªø#include <Python.h>
 #include "xpy.h"
 #include "log.h"
 #include "fmt/format.h"
@@ -72,6 +72,7 @@ const char *get_python_function(const char *module, const char *funcname, int *i
     std::string s;
 
     static char *err = nullptr; // is it ok?
+    // TODO:ÊîπÊàêÊâãÂä®ÈáäÊîæ
     if (err != nullptr)
     {
         delete[] err;
@@ -108,7 +109,7 @@ const char *get_python_function(const char *module, const char *funcname, int *i
         }
 
         pArgs = PyTuple_New(1);
-        PyTuple_SetItem(pArgs, 0, pFunc);  // PyTuple_SetItem °∞steals°± a reference to pFunc.
+        PyTuple_SetItem(pArgs, 0, pFunc);  // PyTuple_SetItem "steals" a reference to pFunc.
         Py_INCREF(pFunc);
         pValue = PyObject_CallObject(func_proxy, pArgs);
         Py_DECREF(pArgs);
@@ -148,6 +149,118 @@ const char *get_python_function(const char *module, const char *funcname, int *i
     }
 
     return NULL;
+}
+
+int call_python_function(int argc, var *argv, int strc, const char **strs, const char **err)
+{
+    if (argc <= 0 || argv->type != var_type::PYTHONOBJ)
+    {
+        error_nc(*err, "Need Function");
+        return -1;
+    }
+
+    PyObject *pFunc, *pArgs, *pPArgs, *pValue;
+
+    pArgs = PyTuple_New(argc);
+    for (int i = 0; i < argc; i++)
+    {
+        var v = argv[i];
+        var_type t = v.type;
+        switch (t)
+        {
+        case var_type::NONE:
+            PyTuple_SetItem(pArgs, i, Py_None);
+            break;
+        case var_type::INTEGER:
+            pValue = PyLong_FromLong(v.d);
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        case var_type::INT64:
+            pValue = PyLong_FromLongLong(v.d64);
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        case var_type::REAL:
+            pValue = PyFloat_FromDouble(v.f);
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        case var_type::BOOLEAN:
+            if (v.d)
+                PyTuple_SetItem(pArgs, i, Py_True);
+            else
+                PyTuple_SetItem(pArgs, i, Py_False);
+            break;
+        case var_type::STRING:
+            // todo: add short string cache
+            if (strs)
+            {
+                if (v.d < 0 || v.d >= strc)
+                {
+                    error_nc(*err, "Invalid string id");
+                    return -1;
+                }
+                pValue = PyUnicode_FromString(strs[v.d]);
+            }
+            else
+            {
+                pValue = PyUnicode_FromString((const char *)v.ptr);
+            }
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        case var_type::POINTER:
+            pValue = PyCapsule_New(v.ptr, NULL, NULL);
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        case var_type::PYTHONOBJ:
+        case var_type::SHARPOBJ:
+            PyObject *pObjectArgs, *pType, *pId;
+
+            pObjectArgs = PyTuple_New(2);
+            if (t == var_type::PYTHONOBJ)
+                pType = PyUnicode_FromString("P");
+            else
+                pType = PyUnicode_FromString("S");
+            PyTuple_SetItem(pObjectArgs, 0, pType);
+
+            pId = PyLong_FromLong(v.d);
+            PyTuple_SetItem(pObjectArgs, 1, pId);
+
+            pValue = PyObject_CallObject(func_object, pObjectArgs);
+            Py_DECREF(pObjectArgs);
+
+            if (pValue == NULL)
+            {
+                error_nc(*err, "call sharp._object failed");
+                return -1;
+            }
+
+            PyTuple_SetItem(pArgs, i, pValue);
+            break;
+        default:
+            std::string s = fmt::format("Invalid type {}", (int)v.type);
+            char *e = new char[s.length() + 1];
+            strcpy(e, s.c_str());
+            *err = e;
+            return -1;
+        }
+    }
+
+    pFunc = PyTuple_GetItem(pArgs, 0);
+    pPArgs = PySequence_GetSlice(pArgs, 1, PySequence_Size(pArgs));
+    pValue = PyObject_CallObject(pFunc, pPArgs);
+    Py_DECREF(pPArgs);
+    Py_DECREF(pArgs);
+
+    if (pValue == NULL)
+    {
+        error_nc(*err, "call python function failed");
+        return -1;
+    }
+
+    int marshal_arguments(var *v, Py_ssize_t size, PyObject *args);
+
+    int result = marshal_arguments(argv, PySequence_Size(pArgs), pValue);
+
+    return result;
 }
 
 /* Return the number of arguments of the application command line */
