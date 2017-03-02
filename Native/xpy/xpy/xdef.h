@@ -38,8 +38,8 @@ typedef int(*csharp_callback)(int argc, var *argv, string_pusher *sp);
 
 #define error_nc(err, msg)                 \
     {                                      \
-        const char *s = msg;               \
-        char *e = new char[strlen(s) + 1]; \
-        strcpy(e, s);                      \
-        err = e;                           \
+        const char *_s = msg;               \
+        char *_e = new char[strlen(_s) + 1]; \
+        strcpy(_e, _s);                      \
+        err = _e;                           \
     }

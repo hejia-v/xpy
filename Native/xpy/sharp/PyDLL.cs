@@ -172,12 +172,15 @@ namespace XPython
             // test
             PyObject load = GetFunction("main", "load");
             PyObject f = (PyObject)CallFunction(load, "return ...")[0];
+            int a = 0;
         }
 
         public static PyObject GetFunction(string module, string funcname)
         {
             int id = 0;
-            IntPtr err = Python_GetFunction(module, funcname, out id);  // err will release when call Python_GetFunction next time.
+            IntPtr err = Python_GetFunction(module, funcname, out id);
+            string e = Marshal.PtrToStringAnsi(err);
+            Native_ReleaseMemory(out err);
             if (id != 0)
             {
                 // succ 
@@ -185,13 +188,13 @@ namespace XPython
             }
             else
             {
-                if (err == IntPtr.Zero)
+                if (e == null)
                 {
                     return new PyObject(); // None
                 }
                 else
                 {
-                    throw new ArgumentException(Marshal.PtrToStringAnsi(err));
+                    throw new ArgumentException(e);
                 }
             }
         }
@@ -338,6 +341,7 @@ namespace XPython
 
         public static void Destroy()
         {
+            logger.info("PyDLL Destroy .................");
             Python_Finalize();
         }
     }
