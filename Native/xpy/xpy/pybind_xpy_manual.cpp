@@ -161,7 +161,7 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
 
     PyObject *pFunc, *pArgs, *pPArgs, *pValue;
 
-    pArgs = PyTuple_New(argc);
+    pArgs = PyTuple_New(argc);  // TODO:只有一个参数会怎样?
     for (int i = 0; i < argc; i++)
     {
         var v = argv[i];
@@ -258,7 +258,7 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
 
     int marshal_arguments(var *v, Py_ssize_t size, PyObject *args);
 
-    int result = marshal_arguments(argv, PySequence_Size(pArgs), pValue);
+    int result = marshal_arguments(argv, PySequence_Size(pValue), pValue);
 
     return result;
 }
@@ -282,11 +282,116 @@ static PyObject * xpy_writelog(PyObject *self, PyObject *args)
     return Py_None;
 }
 
+int marshal_var(var &v, PyObject *pItem)
+{
+    PyObject *pArgs, *pValue;
+
+    if (Py_None == pItem)
+    {
+        v.type = var_type::NONE;
+    }
+    else if (PyBool_Check(pItem) == 1)
+    {
+        v.type = var_type::BOOLEAN;
+        if (Py_True == pItem)
+            v.d = 1;
+        else
+            v.d = 0;
+    }
+    else if (PyNumber_Check(pItem) == 1)
+    {
+        if (PyLong_Check(pItem) == 1)
+        {
+            v.type = var_type::INTEGER;
+            pValue = PyNumber_Long(pItem);
+
+            int overflow;
+            long result = PyLong_AsLongAndOverflow(pValue, &overflow);
+            if (overflow)
+            {
+                v.type = var_type::INT64;
+                v.d64 = PyLong_AsLongLong(pValue);
+            }
+            else
+            {
+                v.type = var_type::INTEGER;
+                v.d = result;
+            }
+            Py_DECREF(pValue);
+        }
+        else if (PyFloat_Check(pItem) == 1)
+        {
+            v.type = var_type::REAL;
+            pValue = PyNumber_Float(pItem);
+            v.f = PyFloat_AsDouble(pValue);
+            Py_DECREF(pValue);
+        }
+        else
+        {
+            PyErr_SetString(PyExc_TypeError, "Unsupported PyNumber argument.");
+            return -1;
+        }
+    }
+    else if (PyUnicode_Check(pItem) == 1)
+    {
+        v.type = var_type::STRING;
+        v.ptr = (void *)PyUnicode_AsUTF8(pItem);
+    }
+    else if (PyCapsule_CheckExact(pItem) == 1)
+    {
+        v.type = var_type::POINTER;
+        v.ptr = PyCapsule_GetPointer(pItem, NULL);
+    }
+    else
+    {
+        // func_proxy: call sharp._proxy to get proxy
+        pArgs = PyTuple_New(1);
+        PyTuple_SetItem(pArgs, 0, pItem);
+        pValue = PyObject_CallObject(func_proxy, pArgs);
+        Py_DECREF(pArgs);
+
+        if (pValue == NULL)
+        {
+            return -1;  // call _proxy failed
+        }
+
+        PyObject *pRet, *pRetValue;
+        pRet = PyTuple_GetItem(pValue, 0);
+        const char *type = PyUnicode_AsUTF8(pRet);
+        if (type == NULL)
+        {
+            //v[0].type = var_type::STRING;
+            //v[0].ptr = (void *)("Invalid proxy function");
+            assert(false, "TODO");
+        }
+        else
+        {
+            if (type[0] == 'S')
+            {
+                v.type = var_type::SHARPOBJ;
+            }
+            else // type[0] == 'P'
+            {
+                v.type = var_type::PYTHONOBJ;
+            }
+
+            pRet = PyTuple_GetItem(pValue, 1);
+            pRetValue = PyNumber_Long(pRet);
+            long n = PyLong_AsLong(pRetValue);
+            v.d = n;
+            Py_DECREF(pRetValue);
+        }
+        Py_DECREF(pValue);
+    }
+    return 1;
+}
+
 int marshal_arguments(var *v, Py_ssize_t size, PyObject *args)
 {
-    PyObject *pItem, *pValue;
-    PyObject *pArgs;
-
+    // TODO: return args num
+    PyObject *pItem;
+    PyObject *pArgs, *pValue;
+    // TODO: if args is not tuple
     for (Py_ssize_t i = 0; i < size; i++)
     {
         pItem = PyTuple_GetItem(args, i);  // dosen't increase refcount
@@ -295,101 +400,9 @@ int marshal_arguments(var *v, Py_ssize_t size, PyObject *args)
             return -1;
         }
 
-        if (Py_None == pItem)
+        if (marshal_var(v[i], pItem) != 1)
         {
-            v[i].type = var_type::NONE;
-        }
-        else if (PyBool_Check(pItem) == 1)
-        {
-            v[i].type = var_type::BOOLEAN;
-            if (Py_True == pItem)
-                v[i].d = 1;
-            else
-                v[i].d = 0;
-        }
-        else if (PyNumber_Check(pItem) == 1)
-        {
-            if (PyLong_Check(pItem) == 1)
-            {
-                v[i].type = var_type::INTEGER;
-                pValue = PyNumber_Long(pItem);
-
-                int overflow;
-                long result = PyLong_AsLongAndOverflow(pValue, &overflow);
-                if (overflow)
-                {
-                    v[i].type = var_type::INT64;
-                    v[i].d64 = PyLong_AsLongLong(pValue);
-                }
-                else
-                {
-                    v[i].type = var_type::INTEGER;
-                    v[i].d = result;
-                }
-                Py_DECREF(pValue);
-            }
-            else if (PyFloat_Check(pItem) == 1)
-            {
-                v[i].type = var_type::REAL;
-                pValue = PyNumber_Float(pItem);
-                v[i].f = PyFloat_AsDouble(pValue);
-                Py_DECREF(pValue);
-            }
-            else
-            {
-                PyErr_SetString(PyExc_TypeError, "Unsupported PyNumber argument.");
-                return -1;
-            }
-        }
-        else if (PyUnicode_Check(pItem) == 1)
-        {
-            v[i].type = var_type::STRING;
-            v[i].ptr = (void *)PyUnicode_AsUTF8(pItem);
-        }
-        else if (PyCapsule_CheckExact(pItem) == 1)
-        {
-            v[i].type = var_type::POINTER;
-            v[i].ptr = PyCapsule_GetPointer(pItem, NULL);
-        }
-        else
-        {
-            // func_proxy: call sharp._proxy to get proxy
-            pArgs = PyTuple_New(1);
-            PyTuple_SetItem(pArgs, 0, pItem);
-            pValue = PyObject_CallObject(func_proxy, pArgs);
-            Py_DECREF(pArgs);
-
-            if (pValue == NULL)
-            {
-                return -1;  // call _proxy failed
-            }
-
-            PyObject *pRet, *pRetValue;
-            pRet = PyTuple_GetItem(pValue, 0);
-            const char *type = PyUnicode_AsUTF8(pRet);
-            if (type == NULL)
-            {
-                v[0].type = var_type::STRING;
-                v[0].ptr = (void *)("Invalid proxy function");
-            }
-            else
-            {
-                if (type[0] == 'S')
-                {
-                    v[i].type = var_type::SHARPOBJ;
-                }
-                else // type[0] == 'P'
-                {
-                    v[i].type = var_type::PYTHONOBJ;
-                }
-
-                pRet = PyTuple_GetItem(pValue, 1);
-                pRetValue = PyNumber_Long(pRet);
-                long n = PyLong_AsLong(pRetValue);
-                v[i].d = n;
-                Py_DECREF(pRetValue);
-            }
-            Py_DECREF(pValue);
+            return -1;
         }
 
         if (PyErr_Occurred())
@@ -402,7 +415,7 @@ int marshal_arguments(var *v, Py_ssize_t size, PyObject *args)
 
 static PyObject * xpy_csharpcall(PyObject *self, PyObject *args)
 {
-    Py_ssize_t tupleSize = PyTuple_Size(args);
+    Py_ssize_t tupleSize = PyTuple_Size(args);  // TODO: move to marshal_arguments
 
     if (!tupleSize)
     {
