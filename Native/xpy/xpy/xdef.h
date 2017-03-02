@@ -36,10 +36,10 @@ struct string_pusher
 
 typedef int(*csharp_callback)(int argc, var *argv, string_pusher *sp);
 
-#define error_nc(err, msg)                 \
-    {                                      \
-        const char *_s = msg;               \
+#define error_nc(err, msg)                   \
+    {                                        \
+        const char *_s = msg;                \
         char *_e = new char[strlen(_s) + 1]; \
         strcpy(_e, _s);                      \
-        err = _e;                           \
+        err = _e;                            \
     }

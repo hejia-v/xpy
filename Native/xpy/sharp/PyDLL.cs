@@ -170,9 +170,17 @@ namespace XPython
             logger.info("Python is embedded: " + isEmbedded);
 
             // test
-            PyObject load = GetFunction("main", "load");
-            PyObject f = (PyObject)CallFunction(load, "return ...")[0];
-            int a = 0;
+            PyObject test_1 = GetFunction("main", "test_1");
+            PyObject test_2 = (PyObject)CallFunction(test_1, "aaabbb")[0];
+            PyEnv env = new PyEnv();
+            object[] result1 = CallFunction(test_2, env);
+
+            PyObject test_4 = GetFunction("main", "test_4");
+            object[] result2 = CallFunction(test_4, "Hello World 1", test_1);
+            object[] result3 = CallFunction(test_4, "Hello World 2", 547);
+            object[] result4 = CallFunction(test_4, "Hello World 3", env);
+            logger.info((string)result4[0]);
+            logger.info(result4[1].GetType().ToString());
         }
 
         public static PyObject GetFunction(string module, string funcname)

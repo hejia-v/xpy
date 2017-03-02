@@ -28,7 +28,7 @@ void python_embedding_test()
 {
     const char* current_path = Native_GetCurrentPath();
     string curr_path = current_path;
-    Native_ReleaseMemory((void*)current_path);
+    Native_ReleaseMemory((void**)(&current_path));
     current_path = nullptr;
     cout << curr_path << endl;
     char *program = "python36_xpy";

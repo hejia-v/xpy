@@ -255,7 +255,7 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
     int marshal_arguments(var *v, PyObject *args);
 
     int result = marshal_arguments(argv, pValue);
-
+    Py_DECREF(pValue);
     return result;
 }
 
@@ -335,6 +335,7 @@ int marshal_var(var &v, PyObject *pItem)
         // func_proxy: call sharp._proxy to get proxy
         pArgs = PyTuple_New(1);
         PyTuple_SetItem(pArgs, 0, pItem);
+        Py_INCREF(pItem);
         pValue = PyObject_CallObject(func_proxy, pArgs);
         Py_DECREF(pArgs);
 

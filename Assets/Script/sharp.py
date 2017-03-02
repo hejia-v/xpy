@@ -3,13 +3,17 @@
 # @author: jia
 # @Desc: sharpcall
 
+import sys
+
 class objcache(object):
     obj_id = 0
     obj_cache = {}
     obj_ref = {}
 
     @staticmethod
-    def fetch(obj):
+    def fetch(obj):  # 获取Python对象或csharp对象的代理id
+        # TODO:同一个obj多次调用 ?
+        # print('---------------- objcache.fetch, obj:', obj)
         obj_id = objcache.obj_id
         obj_cache = objcache.obj_cache
         obj_ref = objcache.obj_ref
@@ -34,6 +38,7 @@ class sharpcache(object):
         proxy_obj = sharpobj(_id)
         sharpcache.sharp_cache[_id] = proxy_obj
         sharpcache.sharp_set[_id] = True
+        # print('---------------- objcache.sharpcache, id:', _id, 'obj:', proxy_obj, 'refcnt:', sys.getrefcount(proxy_obj))
         return proxy_obj
 
 
