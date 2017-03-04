@@ -1,5 +1,6 @@
 ﻿#include <Python.h>
 #include "xpy.h"
+#include "xpyhelp.h"
 #include "log.h"
 #include "fmt/format.h"
 #include <string>
@@ -248,7 +249,8 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
 
     if (pValue == NULL)
     {
-        error_nc(*err, "call python function failed");
+        std::string s = fmt::format("Call python function failed.\n{}", fetch_py_exception_msg());
+        error_nc(*err, s.c_str());
         return -1;
     }
 

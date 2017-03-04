@@ -19,6 +19,8 @@ set(XPY_LIST
     ./log.cpp
     ./pybind_xpy_manual.h
     ./pybind_xpy_manual.cpp
+    ./xpyhelp.h
+    ./xpyhelp.cpp
 )
 
 source_group("" FILES ${XPY_LIST})

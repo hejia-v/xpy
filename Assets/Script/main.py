@@ -11,7 +11,7 @@ def test_1(*arg):
 
 
 def test_2(a):
-    print('test_2 a: ', a)
+    print('test_2 [a: %s]' % a)
     return a
 
 
@@ -21,8 +21,7 @@ def test_3(*arg):
 
 
 def test_4(a, b):
-    print('test_4 a: ', a)
-    print('test_4 b: ', b)
+    print('test_4 [a: %s], [b: %s]' % (a, b))
     return a, b
 
 

@@ -49,28 +49,11 @@ void Native_ReleaseMemory(void **pBuffer)
 void Python_Start(const char* program, const char* home)
 {
     BOOST_ASSERT(program != nullptr && home != nullptr);
-    size_t len, converted;
 
-    len = strlen(program) + 1;
-    converted = 0;
-    if (g_PyProgramName != nullptr)
-    {
-        delete[] g_PyProgramName;
-        g_PyProgramName = nullptr;
-    }
-    g_PyProgramName = new wchar_t[len];
-    mbstowcs_s(&converted, g_PyProgramName, len, program, _TRUNCATE);
+    charstr_to_wcharstr(program, g_PyProgramName);
     Py_SetProgramName(g_PyProgramName);  /* optional but recommended */
 
-    len = strlen(home) + 1;
-    converted = 0;
-    if (g_PyHomePath != nullptr)
-    {
-        delete[] g_PyHomePath;
-        g_PyHomePath = nullptr;
-    }
-    g_PyHomePath = new wchar_t[len];
-    mbstowcs_s(&converted, g_PyHomePath, len, home, _TRUNCATE);
+    charstr_to_wcharstr(home, g_PyHomePath);
     Py_SetPythonHome(g_PyHomePath);
 
     Py_Initialize();

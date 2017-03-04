@@ -43,3 +43,17 @@ typedef int(*csharp_callback)(int argc, var *argv, string_pusher *sp);
         strcpy(_e, _s);                      \
         err = _e;                            \
     }
+
+#define charstr_to_wcharstr(str, wstr)                         \
+    {                                                          \
+        size_t __len = strlen(str) + 1;                        \
+        size_t __converted = 0;                                \
+                                                               \
+        if (wstr != nullptr)                                   \
+        {                                                      \
+            delete[] wstr;                                     \
+            wstr = nullptr;                                    \
+        }                                                      \
+        wstr = new wchar_t[__len];                             \
+        mbstowcs_s(&__converted, wstr, __len, str, _TRUNCATE); \
+    }
