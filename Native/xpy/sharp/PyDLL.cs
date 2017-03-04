@@ -29,6 +29,7 @@ namespace XPython
             public int d;
             public long d64;
             public double f;
+            public IntPtr str;  // 接收到字符串数据后，需要立即释放
             public IntPtr ptr;
         };
         public struct PyObject
@@ -326,7 +327,8 @@ namespace XPython
                         break;
                     case var_type.STRING:
                         // todo: encoding
-                        ret[i] = Marshal.PtrToStringAnsi(args[i].ptr);
+                        ret[i] = Marshal.PtrToStringAnsi(args[i].str);
+                        Native_ReleaseMemory(out args[i].str);
                         break;
                     case var_type.POINTER:
                         ret[i] = args[i].ptr;

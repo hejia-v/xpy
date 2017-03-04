@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <stdint.h>
 
 #ifdef _WINDOWS
@@ -26,6 +26,7 @@ struct var
     int d;
     int64_t d64;
     double f;
+    void *str;  // 与ptr区分开, 字符串传到对方后，对方要立即自己存储起来，然后释放本字符串
     void *ptr;
 };
 

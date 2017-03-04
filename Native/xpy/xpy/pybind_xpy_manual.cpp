@@ -325,7 +325,10 @@ int marshal_var(var &v, PyObject *pItem)
     else if (PyUnicode_Check(pItem) == 1)
     {
         v.type = var_type::STRING;
-        v.ptr = (void *)PyUnicode_AsUTF8(pItem);
+        const char *s = PyUnicode_AsUTF8(pItem);
+        char *new_s = new char[strlen(s) + 1];
+        strcpy(new_s, s);
+        v.str = (void *)new_s;  // 接收者释放
     }
     else if (PyCapsule_CheckExact(pItem) == 1)
     {
