@@ -76,3 +76,4 @@ class sharp(object):
             if not sharpcache.sharp_cache.get(k):
                 del sharpcache.sharp_set[k]
                 return k
+        return None

@@ -156,6 +156,11 @@ int Python_CallFunction(int argc, var *argv, int strc, const char **strs, const 
     return call_python_function(argc, argv, strc, strs, err);
 }
 
+int Python_SharpCollectGarbage(int n, int *result)
+{
+    return sharp_collect_garbage(n, result);
+}
+
 int Python_RunFunction(const char* pythonfile, const char* funcname, const char* args)
 {
     PyObject *pName, *pModule, *pFunc;

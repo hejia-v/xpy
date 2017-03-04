@@ -99,6 +99,9 @@ namespace XPython
             int strc, [In, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 3)] string[] strs, out IntPtr err);
 
         [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        static extern int Python_SharpCollectGarbage(int n, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] result);
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
             [MarshalAs(UnmanagedType.LPStr)] string funcname, [MarshalAs(UnmanagedType.LPStr)] string args);
 
@@ -182,6 +185,12 @@ namespace XPython
             object[] result4 = CallFunction(test_4, "Hello World 3", env);
             logger.info((string)result4[0]);
             logger.info(result4[1].GetType().ToString());
+
+            PyObject gc = GetFunction("gc", "collect");
+            CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection. 
+            CollectGarbage();
+
+            // TODO: remove static
         }
 
         public static PyObject GetFunction(string module, string funcname)
@@ -347,6 +356,21 @@ namespace XPython
             }
 
             return ret;
+        }
+
+        public static void CollectGarbage()
+        {
+            const int cap = 256;
+            int[] result = new int[cap];    // 256 per cycle
+            int n;
+            do
+            {
+                n = Python_SharpCollectGarbage(cap, result);
+                for (int i = 0; i < n; i++)
+                {
+                    objects.Remove(result[i]);
+                }
+            } while (n < cap && n > 0);
         }
 
         public static void Destroy()

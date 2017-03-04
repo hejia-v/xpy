@@ -41,7 +41,7 @@ def main():
     print('Python script start!')
     print(dir(xpy))
     # callback(74, 'ag', (2, 'pt'), '8')
-    # callback(None)
+    callback(None)
     callback(test_1)
     callback(None, True, False, 124, 0xffffffff + 1234, 34.5, 'hello 哈哈')
     return True

@@ -66,6 +66,45 @@ int init_csharp_python_funcs(csharp_callback cb)
     return ret;
 }
 
+int sharp_collect_garbage(int n, int *result)
+{
+    PyObject *pValue, *pNum;
+    int ret = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        pValue = PyObject_CallObject(func_garbage, NULL);
+
+        if (pValue == NULL)
+        {
+            break; // ignore error message
+        }
+
+        if (Py_None == pValue)
+        {
+            Py_DECREF(pValue);
+            break;
+        }
+
+        pNum = PyNumber_Long(pValue);
+
+        int overflow;
+        long id = PyLong_AsLongAndOverflow(pNum, &overflow);
+        if (overflow)
+        {
+            // TODO:
+        }
+        else
+        {
+            result[ret] = id;
+            ret++;
+        }
+        Py_DECREF(pValue);
+        Py_DECREF(pNum);
+    }
+    return ret;
+}
+
 const char *get_python_function(const char *module, const char *funcname, int *id)
 {
     PyObject *pModule, *pFunc, *pType, *pStr, *pArgs, *pValue;
@@ -158,7 +197,7 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
 
     PyObject *pFunc, *pArgs, *pPArgs, *pValue;
 
-    pArgs = PyTuple_New(argc);  // TODO:只有一个参数会怎样?
+    pArgs = PyTuple_New(argc);
     for (int i = 0; i < argc; i++)
     {
         var v = argv[i];
@@ -242,9 +281,16 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
     }
 
     pFunc = PyTuple_GetItem(pArgs, 0);
-    pPArgs = PySequence_GetSlice(pArgs, 1, PySequence_Size(pArgs));
-    pValue = PyObject_CallObject(pFunc, pPArgs);
-    Py_DECREF(pPArgs);
+    if (argc == 1)
+    {
+        pValue = PyObject_CallObject(pFunc, NULL);
+    }
+    else
+    {
+        pPArgs = PySequence_GetSlice(pArgs, 1, PySequence_Size(pArgs));
+        pValue = PyObject_CallObject(pFunc, pPArgs);
+        Py_DECREF(pPArgs);
+    }
     Py_DECREF(pArgs);
 
     if (pValue == NULL)
@@ -259,17 +305,6 @@ int call_python_function(int argc, var *argv, int strc, const char **strs, const
     int result = marshal_arguments(argv, pValue);
     Py_DECREF(pValue);
     return result;
-}
-
-static PyObject * xpy_writelog(PyObject *self, PyObject *args)
-{
-    int level;
-    const char *msg;
-
-    if (!PyArg_ParseTuple(args, "is", &level, &msg))
-        return NULL;
-    xlog(level, msg, false);
-    return Py_None;
 }
 
 int marshal_var(var &v, PyObject *pItem)
@@ -445,11 +480,22 @@ static PyObject *xpy_csharpcall(PyObject *self, PyObject *args)
     return Py_None;
 }
 
+static PyObject * xpy_writelog(PyObject *self, PyObject *args)
+{
+    int level;
+    const char *msg;
+
+    if (!PyArg_ParseTuple(args, "is", &level, &msg))
+        return NULL;
+    xlog(level, msg, false);
+    return Py_None;
+}
+
 static PyMethodDef EmbMethods[] = {
-    {"writelog",  xpy_writelog, METH_VARARGS,
-     "output log."},
     {"csharpcall",  xpy_csharpcall, METH_VARARGS,
      "call csharp."},
+    {"writelog",  xpy_writelog, METH_VARARGS,
+     "output log."},
     {NULL, NULL, 0, NULL}
 };
 
