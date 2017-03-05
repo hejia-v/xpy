@@ -169,7 +169,7 @@ namespace XPython
             Python_Start(program, python_home);
             bool isEmbedded = Python_CheckInterpreter(program);
             Python_InitScript(scriptroot);
-            Python_InitSharpCall(null);
+            Python_InitSharpCall(CallSharp);
             Python_RunFunction("main", "main", "");
             logger.info("Python is embedded: " + isEmbedded);
 
@@ -189,6 +189,13 @@ namespace XPython
             PyObject gc = GetFunction("gc", "collect");
             CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection. 
             CollectGarbage();
+
+            PyObject init = GetFunction("main", "init");
+            SharpFunction func = PyEnv.FuncCallByPython;
+            CallFunction(init, func);
+            PyObject callback = GetFunction("main", "callback");
+            CallFunction(callback, 1, null, "string");
+
 
             // TODO: remove static
         }

@@ -27,6 +27,7 @@ def test_4(a, b):
 
 def init(c):
     global g_csfunc
+    print(c)
     g_csfunc = c
 
 
