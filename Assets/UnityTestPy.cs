@@ -40,28 +40,28 @@ public class UnityTestPy : MonoBehaviour
         pyEnv = new PyEnv();
         pyEnv.Init();
 
-        // test
-        PyEnv.PyObject test_1 = pyEnv.GetFunction("sharp_test", "test_1");
-        PyEnv.PyObject test_2 = (PyEnv.PyObject)pyEnv.CallFunction(test_1, "aaabbb")[0];
-        MyClass myobj = new MyClass();
-        object[] result1 = pyEnv.CallFunction(test_2, myobj);
+        //// test
+        //PyEnv.PyObject test_1 = pyEnv.GetFunction("sharp_test", "test_1");
+        //PyEnv.PyObject test_2 = (PyEnv.PyObject)pyEnv.CallFunction(test_1, "aaabbb")[0];
+        //MyClass myobj = new MyClass();
+        //object[] result1 = pyEnv.CallFunction(test_2, myobj);
 
-        PyEnv.PyObject test_4 = pyEnv.GetFunction("sharp_test", "test_4");
-        object[] result2 = pyEnv.CallFunction(test_4, "Hello World 1", test_1);
-        object[] result3 = pyEnv.CallFunction(test_4, "Hello World 2", 547);
-        object[] result4 = pyEnv.CallFunction(test_4, "Hello World 3", myobj);
-        logger.info((string)result4[0]);
-        logger.info(result4[1].GetType().ToString());
+        //PyEnv.PyObject test_4 = pyEnv.GetFunction("sharp_test", "test_4");
+        //object[] result2 = pyEnv.CallFunction(test_4, "Hello World 1", test_1);
+        //object[] result3 = pyEnv.CallFunction(test_4, "Hello World 2", 547);
+        //object[] result4 = pyEnv.CallFunction(test_4, "Hello World 3", myobj);
+        //logger.info((string)result4[0]);
+        //logger.info(result4[1].GetType().ToString());
 
-        PyEnv.PyObject gc = pyEnv.GetFunction("gc", "collect");
-        pyEnv.CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection.
-        pyEnv.CollectGarbage();
+        //PyEnv.PyObject gc = pyEnv.GetFunction("gc", "collect");
+        //pyEnv.CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection.
+        //pyEnv.CollectGarbage();
 
-        PyEnv.PyObject init = pyEnv.GetFunction("sharp_test", "init");
-        PyEnv.SharpFunction func = FuncCallByPython;
-        pyEnv.CallFunction(init, func);
-        PyEnv.PyObject callback = pyEnv.GetFunction("sharp_test", "callback");
-        pyEnv.CallFunction(callback, 1, null, "string");
+        //PyEnv.PyObject init = pyEnv.GetFunction("sharp_test", "init");
+        //PyEnv.SharpFunction func = FuncCallByPython;
+        //pyEnv.CallFunction(init, func);
+        //PyEnv.PyObject callback = pyEnv.GetFunction("sharp_test", "callback");
+        //pyEnv.CallFunction(callback, 1, null, "string");
     }
 
     // Update is called once per frame

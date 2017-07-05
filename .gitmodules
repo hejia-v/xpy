@@ -1,3 +1,6 @@
 [submodule "Native/xpy/external/fmt"]
 	path = Native/xpy/external/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "Native/xpy/external/rapidjson"]
+	path = Native/xpy/external/rapidjson
+	url = https://github.com/miloyip/rapidjson

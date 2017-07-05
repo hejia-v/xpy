@@ -1,67 +1,232 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Threading;
+using UnityEngine;
 using XPython;
 
 namespace sharp
 {
     class Program
     {
-        class MyClass
-        {
+        static bool enableLoop = true;
+        const float DefaultFrameLength = (1.0f / 60.0f) * 1000;
+        const float FixFrameLength = (1.0f / 10.0f) * 1000;
+        static int logLevel = 0;
+        static bool running = true;
+        static Thread input_thread = new Thread(new ThreadStart(HandInput));
+        static List<String> commands = new List<String>();
+        static List<UnityEngine.MonoBehaviour> entities = new List<UnityEngine.MonoBehaviour>();
+        static List<Dictionary<String, MethodInfo>> behaviour_methods = new List<Dictionary<String, MethodInfo>>();
+        static List<LoopTask> task_list = new List<LoopTask>();
 
+        public struct MethodInfo
+        {
+            public object obj;
+            public System.Reflection.MethodInfo method;
+        };
+
+        static void CacheMonoBehaviourMethod(object obj)
+        {
+            String[] methodnames = { "Awake", "Start", "Update", "OnGUI", "FixedUpdate", "OnDestroy" };
+            Dictionary<String, MethodInfo> methods = new Dictionary<string, MethodInfo>();
+            foreach (String methodname in methodnames)
+            {
+                MethodInfo info = new MethodInfo();
+                info.obj = obj;
+                info.method = obj.GetType().GetMethod(methodname, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (info.method==null)
+                {
+                    info.method = obj.GetType().BaseType.GetMethod(methodname, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                }
+                methods[methodname] = info;
+            }
+            behaviour_methods.Add(methods);
         }
 
-        // Need code gen
-        public static string FuncCallByPython(int n, PyEnv.var[] argv)
+        static void HandInput()
         {
-            logger.info("I'm in Python :");
-            for (int i = 1; i < n; i++)
+            while (true)
             {
-                logger.info(string.Format("Args {0} type {1}", i, argv[i].type));
+                string buf = Console.ReadLine();
+                logger.debug("enter command: " + buf);
+                Monitor.Enter(commands);
+                commands.Add(buf);
+                Monitor.Exit(commands);
+            }
+        }
+
+        static void RunMonoBehaviourMethod(string method)
+        {
+            foreach (Dictionary<String, MethodInfo> methods in behaviour_methods)
+            {
+                methods[method].method.Invoke(methods[method].obj, null);
+            }
+        }
+
+        static void Init()
+        {
+            MonoBehaviour clientAppPy = new ClientAppPy();
+            entities.Add(clientAppPy);
+            CacheMonoBehaviourMethod(clientAppPy);
+
+            RunMonoBehaviourMethod("Awake");
+            RunMonoBehaviourMethod("Start");
+        }
+
+        class LoopTask : IComparable<LoopTask>
+        {
+            public int max_times = 0;
+            int count = 0;
+            double deadline = 0;
+            double frameLength = 0;
+
+            public int GetRemainTime()
+            {
+                return (int)((deadline - long.Parse(DateTime.Now.ToFileTime().ToString())) / 10000000.0f * 1000.0f);
             }
 
-            // return string
-            // argv[0].type = PyDLL.var_type.STRING;
-            // return "ok";
+            public void Update()
+            {
+                if (max_times>0)
+                {
+                    ++count;
+                }
+                deadline = long.Parse(DateTime.Now.ToFileTime().ToString()) + frameLength / 1000.0f * 10000000.0f;
+            }
 
-            argv[0].type = PyEnv.var_type.INTEGER;
-            argv[0].d = 123;
-            return null;
+            public virtual void Do()
+            {
+
+            }
+
+            public bool Finished()
+            {
+                if (max_times>0)
+                {
+                    return count >= max_times;
+                }
+                return false;
+            }
+
+            public void SetFrameLength(double fl)
+            {
+                frameLength = fl;
+            }
+
+            public int CompareTo(LoopTask other)
+            {
+                if (this.deadline == other.deadline)
+                {
+                    return 0;
+                }
+                else if (this.deadline > other.deadline)
+                {
+                    return 1;
+                }
+                else if (this.deadline < other.deadline)
+                {
+                    return -1;
+                }
+                throw new NotImplementedException();
+            }
+        }
+
+        class UpdateTask:LoopTask
+        {
+            public UpdateTask()
+            {
+                SetFrameLength((1.0f / 60.0f) * 1000);
+            }
+
+            public override void Do()
+            {
+                //logger.info("333333333");
+                RunMonoBehaviourMethod("Update");
+            }
+        }
+
+        class FixUpdateTask : LoopTask
+        {
+            public FixUpdateTask()
+            {
+                SetFrameLength((1.0f / 10.0f) * 1000);
+            }
+
+            public override void Do()
+            {
+                //logger.info("44444");
+                RunMonoBehaviourMethod("FixedUpdate");
+            }
+        }
+
+        static void Loop()
+        {
+            if (!enableLoop)
+            {
+                return;
+            }
+
+            input_thread.IsBackground = true;
+            input_thread.Start();
+
+            task_list.Add(new UpdateTask());
+            task_list.Add(new FixUpdateTask());
+
+            //need optimization
+            task_list.Sort();
+            while (running)
+            {
+                Monitor.Enter(commands);
+                foreach (String s in commands)
+                {
+                    if (s.Trim() == "exit")
+                    {
+                        running = false;
+                    }
+                    logger.info("handle commands: " + s);
+                }
+                commands.Clear();
+                Monitor.Exit(commands);
+
+                foreach (LoopTask task in task_list)
+                {
+                    if (task.GetRemainTime() <= 0)
+                    {
+                        task.Do();
+                        task.Update();
+                    }
+                }
+                task_list.RemoveAll(t => t.Finished());
+                if (task_list.Count == 0)
+                {
+                    break;
+                }
+                task_list.Sort();
+                int lag = task_list[0].GetRemainTime();
+                Thread.Sleep(lag);
+            }   
+        }
+
+        static void Destroy()
+        {
+            RunMonoBehaviourMethod("OnDestroy");
         }
 
         static void Main(string[] args)
         {
-            // TODO: memory leak test
-            PyEnv pyEnv = new PyEnv();
-            pyEnv.Init();
-
-            // test
-            PyEnv.PyObject test_1 = pyEnv.GetFunction("sharp_test", "test_1");
-            PyEnv.PyObject test_2 = (PyEnv.PyObject)pyEnv.CallFunction(test_1, "aaabbb")[0];
-            MyClass myobj = new MyClass();
-            object[] result1 = pyEnv.CallFunction(test_2, myobj);
-
-            PyEnv.PyObject test_4 = pyEnv.GetFunction("sharp_test", "test_4");
-            object[] result2 = pyEnv.CallFunction(test_4, "Hello World 1", test_1);
-            object[] result3 = pyEnv.CallFunction(test_4, "Hello World 2", 547);
-            object[] result4 = pyEnv.CallFunction(test_4, "Hello World 3", myobj);
-            logger.info((string)result4[0]);
-            logger.info(result4[1].GetType().ToString());
-
-            PyEnv.PyObject gc = pyEnv.GetFunction("gc", "collect");
-            pyEnv.CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection.
-            pyEnv.CollectGarbage();
-
-            PyEnv.PyObject init = pyEnv.GetFunction("sharp_test", "init");
-            PyEnv.SharpFunction func = FuncCallByPython;
-            pyEnv.CallFunction(init, func);
-            PyEnv.PyObject callback = pyEnv.GetFunction("sharp_test", "callback");
-            pyEnv.CallFunction(callback, 1, null, "string");
-
-            pyEnv.Destroy();
+            bool simple_test = true;
+            if (simple_test)
+            {
+                BasePyTest.TestBasePyFunctions();
+                BasePyTest.TestBasePyFunctions();
+            }
+            else
+            {
+                Init();
+                Loop();
+                Destroy();
+            }
         }
     }
 }

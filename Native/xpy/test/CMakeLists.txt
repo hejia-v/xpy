@@ -12,8 +12,6 @@ link_directories(${Python_LIBRARY_DIRS})  # 要在add_executable或add_library�
 
 set(TEST_LIST
     ./main.cpp
-    # ./utility.h
-    # ./utility.cpp
 )
 add_executable(testmain ${TEST_LIST})
 source_group("" FILES ${TEST_LIST})

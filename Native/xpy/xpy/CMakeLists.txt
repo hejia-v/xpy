@@ -10,18 +10,31 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${Python_LIBRARY_DIRS})  # 要在add_executable或add_library的前面
 
 include_directories("../external/fmt")
+include_directories("../external/rapidjson/include")
+include_directories("./")
 
 set(XPY_LIST
-    ./xdef.h
-    ./xpy.h
-    ./xpy.cpp
-    ./log.h
-    ./log.cpp
-    ./pybind_xpy_manual.h
-    ./pybind_xpy_manual.cpp
     ./xpyhelp.h
     ./xpyhelp.cpp
+    ./sharppy.h
+    ./sharppy.cpp
+    ./xdefine.h
 )
+
+set(ALL_DIRS
+    common
+    helper
+)
+
+foreach(_comp ${ALL_DIRS})
+    set(CURR_HEADER_LIST "")
+    set(CURR_SRC_LIST "")
+    set(SRC_DIR_NAME ./${_comp})
+    aux_source_directory(${SRC_DIR_NAME} CURR_SRC_LIST)
+    file (GLOB CURR_HEADER_LIST ${SRC_DIR_NAME}/*.h)
+    list(APPEND XPY_LIST ${CURR_HEADER_LIST} ${CURR_SRC_LIST})
+    source_group(${_comp} FILES ${CURR_HEADER_LIST} ${CURR_SRC_LIST})
+endforeach()
 
 source_group("" FILES ${XPY_LIST})
 

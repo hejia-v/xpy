@@ -46,7 +46,7 @@ add_subdirectory("xpy/" xpy)
 add_subdirectory("test/" test)
 
 if (WIN32)
-    include_external_msproject(sharp ../xpy/sharp/sharp.csproj)
+    include_external_msproject(sharp ../xpy/sharp/sharptest.csproj)
 endif()
 
 message("======================================>" ${PROJECT_BINARY_DIR})

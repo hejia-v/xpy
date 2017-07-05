@@ -26,24 +26,24 @@ void char_array_test()
 
 void python_embedding_test()
 {
-    const char* current_path = Native_GetCurrentPath();
+    const char* current_path = _Native_GetCurrentPath();
     string curr_path = current_path;
-    Native_ReleaseMemory((void**)(&current_path));
+    _Native_ReleaseMemory((void**)(&current_path));
     current_path = nullptr;
     cout << curr_path << endl;
     char *program = "python36_xpy";
     string home = curr_path + "/../../xpy/external/Python-3.6.0";
-    string scriptroot = curr_path + "/../../../Assets/Script";
-    Python_RegisterModule();
-    Python_Start(program, home.c_str());
-    std::cout << Python_CheckInterpreter(program) << "\n";
-    Python_InitScript(scriptroot.c_str());
+    string scriptroot = curr_path + "/../../../Assets/PyScript";
+    _Python_RegisterModule();
+    _Python_Start(program, home.c_str());
+    std::cout << _Python_CheckInterpreter(program) << "\n";
+    _Python_InitScript(scriptroot.c_str());
     string script_str = "import sys\n"
         "print(sys.path)\n";
     //Python_RunString(script_str.c_str());
-    Python_InitSharpCall(nullptr);
-    Python_RunFunction("main", "main", "");
-    Python_Finalize();
+    _Python_InitSharpCall(nullptr);
+    _Python_RunFunction("main", "main", "");
+    _Python_Finalize();
 }
 
 int main(int argc, char *argv[])

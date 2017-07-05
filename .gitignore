@@ -9,11 +9,11 @@
 ExportedObj/
 *.svd
 *.userprefs
-*.csproj
+/*.csproj
 *.pidb
 *.suo
-*.sln
-*.user
+/*.sln
+/*.user
 *.unityproj
 *.booproj
 
@@ -29,7 +29,7 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-*.meta
+**/__pycache__
 *.pyc
 *.pyo
 native/build
@@ -43,3 +43,7 @@ native/xpy/xtest
 *.VC.db
 *~$*
 **/sharp/obj
+**/Plugins/x86_64
+/.vscode
+**/Plugins/x86_64.meta
+**/__pycache__.meta
