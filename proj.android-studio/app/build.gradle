@@ -1,11 +1,20 @@
 apply plugin: 'com.android.application'
 
 //---------------------------------------------------------------------------------------
-def my_inc = [
-        boost_inc_dir()
-]
+def local_props(key) {
+    // version = "ndk.dir" or "ndk.dir.nightly"
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def val = properties.getProperty(key, null)
+    if (val == null)
+        throw new GradleException("""\
+                cant find value '${key}' in file 'local.properties'.  """)
 
-def my_incs = my_inc.collect { "-I" + file(it) }
+    return val
+}
+
+def boost_dir() { return local_props("boost.dir") }
+
 //---------------------------------------------------------------------------------------
 
 android {
@@ -20,37 +29,22 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-fexceptions"
+                // Passes optional arguments to CMake.
+                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang", '-DANDROID_NATIVE_API_LEVEL=26',
+                        "-DBOOST_DIR=${boost_dir()}", "-DANDROID_STL=c++_shared"
+
+                // Sets optional flags for the C compiler.
+                // cFlags "-D_EXAMPLE_C_FLAG1", "-D_EXAMPLE_C_FLAG2"
+
+                cppFlags '-std=c++14', "-D__STDC_FORMAT_MACROS", "-fexceptions", '-frtti'
             }
         }
-    }
-    ndk {
-        moduleName = 'test_boost'
-        //------------------------------
+        ndk {
+            // moduleName = 'test_boost'
+            // platformVersion = 26
+            // defaultConfig.minSdkVersion.apiLevel.asType(Integer) // keep equal to minSdk
 
-        platformVersion = platform_ver()
-        // defaultConfig.minSdkVersion.apiLevel.asType(Integer) // keep equal to minSdk
-        toolchain = tc_name()
-        toolchainVersion = tc_ver()
-        stl = std_lib()
-        //--------------------------------
-        cppFlags.addAll(['-std=c++14', '-frtti', '-fexceptions'])
-        cppFlags.addAll(my_incs)
-
-        ldLibs.addAll(['log'])
-        abiFilters.addAll(my_abis())
-    }
-    sources {
-        main {
-            jni {
-                exportedHeaders {
-                    srcDirs "src/main/jni"
-                }
-                dependencies {
-                    library 'boost_chrono' linkage 'shared'
-                    library 'boost_system' linkage 'shared'
-                }
-            }
+            abiFilters "armeabi-v7a" //, "armeabi-v7a", "x86", "mips"
         }
     }
     buildTypes {
@@ -59,11 +53,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-//    externalNativeBuild {
-//        cmake {
-//            path "CMakeLists.txt"
-//        }
-//    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
 }
 
 dependencies {

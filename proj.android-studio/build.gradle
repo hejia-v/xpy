@@ -27,22 +27,3 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-//---------------------------------------------------------------------------------------
-def local_props(key) { // version = "ndk.dir" or "ndk.dir.nightly"
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    def val = properties.getProperty(key, null)
-    if (val == null)
-        throw new GradleException("""\
-                cant find value '${key}' in file 'local.properties'.  """)
-
-    return val
-}
-
-//---------------------------------------------------------------------------------------
-def boost_dir() { return local_props("boost.dir") }
-
-def boost_inc_dir() { return "${boost_dir()}/include" }
-
-def boost_lib_dir() { return "${boost_dir()}/libs" }

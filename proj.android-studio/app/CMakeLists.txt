@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.6.0)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -42,3 +42,26 @@ target_link_libraries( # Specifies the target library.
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
+
+
+set(BOOST_INCLUDE ${BOOST_DIR}/include)
+set(BOOST_LIB ${BOOST_DIR}/libs/${ANDROID_ABI}/llvm-3.5)
+
+include_directories(${BOOST_INCLUDE})
+add_library(boost_system_lib STATIC IMPORTED)
+add_library(boost_chrono_lib STATIC IMPORTED)
+add_library(native_tst SHARED src/main/cpp/native_tst.cpp)
+set_target_properties(boost_system_lib PROPERTIES IMPORTED_LOCATION ${BOOST_LIB}/libboost_system.a)
+set_target_properties(boost_chrono_lib PROPERTIES IMPORTED_LOCATION ${BOOST_LIB}/libboost_chrono.a)
+target_link_libraries(native_tst boost_chrono_lib boost_system_lib)
+
+message("======================================>")
+message("======================================>" ${PROJECT_BINARY_DIR})
+message(${BOOST_LIB})
+message("======================================>")
+# message(FATAL_ERROR "show log")  # 通过使用这句在android studio中抛出错误，从而显示log
+
+# 查看导出函数
+# D:\Android\sdk\ndk-bundle\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\bin\arm-linux-androideabi-nm.exe -D xx.so
+# 查看依赖
+# D:\Android\sdk\ndk-bundle\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\bin\arm-linux-androideabi-readelf.exe -d xx.so
