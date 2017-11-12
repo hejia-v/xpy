@@ -44,7 +44,8 @@ android {
             // platformVersion = 26
             // defaultConfig.minSdkVersion.apiLevel.asType(Integer) // keep equal to minSdk
 
-            abiFilters "armeabi-v7a" //, "armeabi-v7a", "x86", "mips"
+            // 两个最好都有, 否则在部分设备上可能找不到库
+            abiFilters "armeabi", "armeabi-v7a" // "armeabi-v7a", "x86", "mips"
         }
     }
     buildTypes {
