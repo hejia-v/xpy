@@ -15,6 +15,8 @@ def local_props(key) {
 
 def boost_dir() { return local_props("boost.dir") }
 
+def python_dir() { return local_props("python.dir") }
+
 //---------------------------------------------------------------------------------------
 
 android {
@@ -31,7 +33,9 @@ android {
             cmake {
                 // Passes optional arguments to CMake.
                 arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang", '-DANDROID_NATIVE_API_LEVEL=26',
-                        "-DBOOST_DIR=${boost_dir()}", "-DANDROID_STL=c++_shared"
+                        "-DBOOST_DIR=${boost_dir()}", "-DPYTHON_DIR=${python_dir()}",
+                        "-DANDROID_STL=c++_static"
+                //,'-DANDROID_PLATFORM=android-26'
 
                 // Sets optional flags for the C compiler.
                 // cFlags "-D_EXAMPLE_C_FLAG1", "-D_EXAMPLE_C_FLAG2"

@@ -5,6 +5,7 @@
 
 #pragma once
 #include <assert.h>
+#include <utility>
 
 template <typename T>
 class SingleTon

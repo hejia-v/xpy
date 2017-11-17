@@ -1,6 +1,6 @@
-﻿#include <Python.h>
+﻿#include <string>  // ndk r15 的诡异问题，放到 #include <Python.h> 下面会报找不到 fgetpos 的错
+#include <Python.h>
 #include "xpyhelp.h"
-#include <string>
 
 static std::string g_ErrorMsg;
 

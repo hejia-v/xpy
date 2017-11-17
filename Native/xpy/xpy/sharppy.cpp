@@ -1,11 +1,11 @@
-﻿#include <Python.h>
+﻿#include <string>
 /**
 * Since Python may define some pre-processor definitions which affect the standard headers
 * on some systems, you must include Python.h before any standard headers are included
 */
+#include <Python.h> // 里面的一些宏会影响 ndk r15 cstdio 里一些函数的定义
 #include "sharppy.h"
 #include "helper/log.h"
-#include <string>
 #include <vector>
 #include <sstream>
 #include <fstream>

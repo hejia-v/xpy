@@ -219,7 +219,7 @@ namespace sharp
             if (simple_test)
             {
                 BasePyTest.TestBasePyFunctions();
-                BasePyTest.TestBasePyFunctions();
+                //BasePyTest.TestBasePyFunctions();
             }
             else
             {

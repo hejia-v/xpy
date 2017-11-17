@@ -15,3 +15,32 @@
 
 4. 用vs2015打开xpy/Native/xpy.sln，其中sharp工程是不依赖unity，可以用来进行c#的开发和测试。编译xpy工程后，将xpy/Native/build/bin/Debug文件夹中的xpy\_d.dll和python36\_d.dll拷贝到xpy/Assets/Plugins/x86\_64文件夹。
 
+### android
+
+android平台的native库使用Linux编译，这里以ubuntu 16.10 sever为例
+
+1. 通过ppa安装jdk, 注意apt_pkg目前不支持python3.6, 需要留意一下python3对应的是不是python3.6
+```shell
+sudo apt-get update && sudo apt-get -y upgrade
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt install oracle-java8-installer
+
+echo "JAVA_HOME=$(which java)" | sudo tee -a /etc/environment
+source /etc/environment
+echo $JAVA_HOME
+```
+2. wget获取[android命令行工具](https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip), 解压得到tools文件夹
+3. 进入 tools/bin 目录,
+4. 参考[官网](https://developer.android.com/studio/command-line/sdkmanager.html), 安装sdk
+
+#### 编译Python
+参考python的[issue30386](https://bugs.python.org/issue30386)
+
+#### 编译Boost
+参考 https://github.com/dec1/Boost-for-Android
+
+#### 编译xpy
+在android studio中打开proj.android-studio文件夹下面的工程，在local.properties中配置好boost和python的路径，通过rebuild project，可以编译出xpy的native库。
+

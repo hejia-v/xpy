@@ -37,12 +37,12 @@ public class BasePyTest
         pyEnv.Init();
 
         // test
-        PyEnv.PyObject test_1 = pyEnv.GetFunction("sharp_test", "test_1");
+        PyEnv.PyObject test_1 = pyEnv.GetFunction("test_sharp", "test_1");
         PyEnv.PyObject test_2 = (PyEnv.PyObject)pyEnv.CallFunction(test_1, "aaabbb")[0];
         MyClass myobj = new MyClass();
         object[] result1 = pyEnv.CallFunction(test_2, myobj);
 
-        PyEnv.PyObject test_4 = pyEnv.GetFunction("sharp_test", "test_4");
+        PyEnv.PyObject test_4 = pyEnv.GetFunction("test_sharp", "test_4");
         object[] result2 = pyEnv.CallFunction(test_4, "Hello World 1", test_1);
         object[] result3 = pyEnv.CallFunction(test_4, "Hello World 2", 547);
         object[] result4 = pyEnv.CallFunction(test_4, "Hello World 3", myobj);
@@ -53,16 +53,16 @@ public class BasePyTest
         pyEnv.CallFunction(gc);  // gc.collect(generation=2), With no arguments, run a full collection.
         pyEnv.CollectGarbage();
 
-        PyEnv.PyObject init = pyEnv.GetFunction("sharp_test", "init");
+        PyEnv.PyObject init = pyEnv.GetFunction("test_sharp", "init");
         PyEnv.SharpFunction func = FuncCallByPython;
         pyEnv.CallFunction(init, func);
-        PyEnv.PyObject callback = pyEnv.GetFunction("sharp_test", "callback");
+        PyEnv.PyObject callback = pyEnv.GetFunction("test_sharp", "callback");
         pyEnv.CallFunction(callback, 1, null, "string");
 
-        PyEnv.PyObject ui = pyEnv.CreateClassInstance("ui", "UI");
-        PyEnv.PyObject uiUpdate = pyEnv.GetMethod(ui, "Update");
-        pyEnv.CallFunction(uiUpdate);
-        pyEnv.CallFunction(uiUpdate);
+        //PyEnv.PyObject ui = pyEnv.CreateClassInstance("ui", "UI");
+        //PyEnv.PyObject uiUpdate = pyEnv.GetMethod(ui, "Update");
+        //pyEnv.CallFunction(uiUpdate);
+        //pyEnv.CallFunction(uiUpdate);
 
         pyEnv.Destroy();
     }

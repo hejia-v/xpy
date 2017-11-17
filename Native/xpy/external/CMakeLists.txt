@@ -11,7 +11,20 @@ else()
     set(Python_LIBRARY_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Python-3.6.1/PCbuild/amd64)
 endif()
 
-file (GLOB PYTHON_LIBRARIES_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/Python-3.6.1/PCbuild/amd64/python36_d.*)
+set(PYTHON_LIBRARIES_DEBUG_REQ
+    python36_d.*
+    _socket_d.*
+    select_d.*
+    pyexpat_d.*
+)
+
+set(PYTHON_LIBRARIES_DEBUG)
+
+foreach(_comp ${PYTHON_LIBRARIES_DEBUG_REQ})
+    file (GLOB CURRENT_LIBRARIES ${CMAKE_CURRENT_SOURCE_DIR}/Python-3.6.1/PCbuild/amd64/${_comp})
+    list(APPEND PYTHON_LIBRARIES_DEBUG ${CURRENT_LIBRARIES})
+endforeach()
+
 file (COPY ${PYTHON_LIBRARIES_DEBUG} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
 
 set(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
