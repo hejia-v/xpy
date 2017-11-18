@@ -49,4 +49,3 @@ def test():
 
 # 本模块最好写到c
 
-# 1. 脚本加密 2. 脚本文件加载 3.pycharm调试支持 4. c# wrapper 5. android 编译 6. windows开发测试 7.单元测试 8. gc 相关的处理 9. 性能优化

@@ -48,3 +48,15 @@ native/xpy/xtest
 **/Plugins/x86_64.meta
 **/__pycache__.meta
 /Assets/PyScript/.idea
+
+# --------------- 屏蔽游戏中不需要的python库 ---------------
+/Assets/PyScript/Lib/distutils
+/Assets/PyScript/Lib/lib2to3
+/Assets/PyScript/Lib/multiprocessing
+/Assets/PyScript/Lib/tkinter
+/Assets/PyScript/Lib/turtledemo
+/Assets/PyScript/Lib/venv
+/Assets/PyScript/Lib/wsgiref
+/Assets/PyScript/Lib/test
+/Assets/PyScript/Lib/idlelib
+/Assets/PyScript/Lib/ensurepip

@@ -166,7 +166,7 @@ namespace XPython
 
             string program = "python36_xpy";
 #if STANDALONE
-            string python_home = path + "/../../../xpy/external/Python-3.6.1";
+            string python_home = path + "/../../../../Assets/PyScript";
             string scriptroot = path + "/../../../../Assets/PyScript";
 #elif UNITY_EDITOR
             string python_home = path + "/Native/xpy/external/Python-3.6.1";
