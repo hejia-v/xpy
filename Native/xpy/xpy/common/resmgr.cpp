@@ -27,6 +27,12 @@ ResMgr::~ResMgr()
         printf("PHYSFS_deinit() failed!\n  reason: %s.\n", PHYSFS_getLastError());
 }
 
+void ResMgr::AddToSearchPath(std::string path)
+{
+    PHYSFS_AddToSearchPath("myzip.zip", 1);
+
+}
+
 void ResMgr::setResPath(std::string path)
 {
     m_ResPath = path;

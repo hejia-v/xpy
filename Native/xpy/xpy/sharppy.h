@@ -77,4 +77,6 @@ extern "C" {
     EXPORT_API int Python_GetInstanceMethod(const char *method, var *argv, const char **err);
     EXPORT_API int Python_SharpCollectGarbage(int n, int *result);
     EXPORT_API int Python_RunFunction(const char *pythonfile, const char *funcname, const char *args);
+    /** **/
+    EXPORT_API void XPY_AddScriptSearchPath();
 }
