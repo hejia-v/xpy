@@ -6,10 +6,11 @@
 #pragma once
 
 #include "singleton.h"
+#include "xdefine.h"
 #include <string>
 
-namespace xpy
-{
+NAMESPACE_XPY_BEGIN
+
 class ResMgr : public SingleTon<ResMgr>
 {
     friend class SingleTon<ResMgr>;  // SingleTon创建实例时要访问私有的ResMgr构造函数
@@ -25,4 +26,5 @@ private:
 private:
     std::string m_ResPath = "";
 };
-}
+
+NAMESPACE_XPY_END

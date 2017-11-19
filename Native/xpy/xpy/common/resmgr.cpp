@@ -4,17 +4,27 @@
 #include <fstream>
 #include <iostream>
 
+/* Define this, so the compiler doesn't complain about using old APIs. */
+#define PHYSFS_DEPRECATED
+#include "physfs.h"
+
 namespace fs = boost::filesystem;
 using namespace std;
 
-namespace xpy
-{
+NAMESPACE_XPY_BEGIN
 ResMgr::ResMgr()
 {
+    if (!PHYSFS_init(NULL))
+    {
+        printf("PHYSFS_init() failed!\n  reason: %s.\n", PHYSFS_getLastError());
+        return;
+    } /* if */
 }
 
 ResMgr::~ResMgr()
 {
+    if (!PHYSFS_deinit())
+        printf("PHYSFS_deinit() failed!\n  reason: %s.\n", PHYSFS_getLastError());
 }
 
 void ResMgr::setResPath(std::string path)
@@ -31,7 +41,7 @@ std::string ResMgr::getResPath()
         string respath = currpath.lexically_normal().make_preferred().string();
         boost::replace_all(respath, "\\", "/");
         return respath;
-    } 
+    }
     else
     {
         return m_ResPath;
@@ -54,4 +64,4 @@ std::string ResMgr::readFileText(std::string filename)
     infile.close();
     return text;
 }
-}
+NAMESPACE_XPY_END

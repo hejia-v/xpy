@@ -10,6 +10,7 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${Python_LIBRARY_DIRS})  # 要在add_executable或add_library的前面
 
 include_directories("../external/fmt")
+include_directories("../external/physfs-3.0.1/src")
 include_directories("../external/rapidjson/include")
 include_directories("./")
 
@@ -42,6 +43,6 @@ set(XPY_SHARED_TARGET "xpy")
 add_library(${XPY_SHARED_TARGET} SHARED ${XPY_LIST})
 
 target_link_libraries( ${XPY_SHARED_TARGET} ${Boost_LIBRARIES} )
-target_link_libraries( ${XPY_SHARED_TARGET} "fmt" )
+target_link_libraries( ${XPY_SHARED_TARGET} "fmt" physfs-static)
 
 set(XPY_SHARED_TARGET ${XPY_SHARED_TARGET} PARENT_SCOPE)
