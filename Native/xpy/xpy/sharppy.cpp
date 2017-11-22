@@ -19,6 +19,7 @@
 #include <boost/assert.hpp>
 
 #include "common/util.h"
+#include "common/resmgr.h"
 #include "xpyhelp.h"
 
 namespace fs = boost::filesystem;
@@ -103,9 +104,9 @@ bool Python_CheckInterpreter(const char *program)
 
 bool Python_Finalize()
 {
-	reset_log_handler();
+    reset_log_handler();
 
-	if (Py_FinalizeEx() != 0)
+    if (Py_FinalizeEx() != 0)
     {
         return false;
     }
@@ -855,5 +856,19 @@ int register_sharppy_functions()
 }
 
 // -------------------------------------------------------------------------------------
+int SHARPPY_init()
+{
+    ResMgr::instance();
+    return 1;
+}
 
+int SHARPPY_uninit()
+{
+    ResMgr::destroyInstance();
+    return 1;
+}
 
+int SHARPPY_AddScriptSearchPath(const char *realpath, const char *mntpoint, int append)
+{
+    return ResMgr::getInstance()->AddToSearchPath(realpath, mntpoint, append);
+}

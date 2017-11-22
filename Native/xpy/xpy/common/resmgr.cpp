@@ -1,4 +1,5 @@
 #include "resmgr.h"
+#include "helper/log.h"
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
@@ -19,6 +20,7 @@ ResMgr::ResMgr()
         printf("PHYSFS_init() failed!\n  reason: %s.\n", PHYSFS_getLastError());
         return;
     } /* if */
+    logger::info("ResMgr::ResMgr init." );
 }
 
 ResMgr::~ResMgr()
@@ -27,10 +29,11 @@ ResMgr::~ResMgr()
         printf("PHYSFS_deinit() failed!\n  reason: %s.\n", PHYSFS_getLastError());
 }
 
-void ResMgr::AddToSearchPath(std::string path)
+int ResMgr::AddToSearchPath(std::string realpath, std::string mntpoint, int append)
 {
-    PHYSFS_AddToSearchPath("myzip.zip", 1);
-
+    string path = fs::path(realpath).lexically_normal().make_preferred().string();
+    boost::replace_all(path, "\\", "/");
+    return PHYSFS_mount(path.c_str(), mntpoint.c_str(), append);
 }
 
 void ResMgr::setResPath(std::string path)

@@ -113,6 +113,16 @@ namespace XPython
         public static extern int Python_RunFunction([MarshalAs(UnmanagedType.LPStr)] string pythonfile,
             [MarshalAs(UnmanagedType.LPStr)] string funcname, [MarshalAs(UnmanagedType.LPStr)] string args);
 
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SHARPPY_init();
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SHARPPY_uninit();
+
+        [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SHARPPY_AddScriptSearchPath([MarshalAs(UnmanagedType.LPStr)] string realpath, 
+            [MarshalAs(UnmanagedType.LPStr)] string mntpoint, int append);
+
         //[DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
         //public static extern bool KBE_Init();
 
@@ -161,6 +171,8 @@ namespace XPython
             // Call the API passing along the function pointer.
             RegisterDebugCallback(intptr_delegate);
 
+            SHARPPY_init();
+
             string path = GetCurrentPath();
             logger.info(path);
 
@@ -168,6 +180,7 @@ namespace XPython
 #if STANDALONE
             string python_home = path + "/../../../../Assets/PyScript";
             string scriptroot = path + "/../../../../Assets/PyScript";
+            SHARPPY_AddScriptSearchPath(scriptroot, "/script", 1);
 #elif UNITY_EDITOR
             string python_home = path + "/Native/xpy/external/Python-3.6.1";
             string scriptroot = path + "/Assets/PyScript";
@@ -438,6 +451,7 @@ namespace XPython
             {
                 throw new ArgumentException("Python finalize failed.");
             }
+            SHARPPY_uninit();
         }
     }
 }

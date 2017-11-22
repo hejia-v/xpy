@@ -48,6 +48,10 @@ native/xpy/xtest
 **/Plugins/x86_64.meta
 **/__pycache__.meta
 /Assets/PyScript/.idea
+**/test.nunit.demo/obj
+**/test.nunit.demo/bin
+**/test.nunit.xpy/obj
+**/test.nunit.xpy/bin
 
 # --------------- 屏蔽游戏中不需要的python库 ---------------
 /Assets/PyScript/Lib/distutils

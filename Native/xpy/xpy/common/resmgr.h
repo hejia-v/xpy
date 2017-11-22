@@ -15,7 +15,7 @@ class ResMgr : public SingleTon<ResMgr>
 {
     friend class SingleTon<ResMgr>;  // SingleTon创建实例时要访问私有的ResMgr构造函数
 public:
-    void AddToSearchPath(std::string path);
+    int AddToSearchPath(std::string realpath, std::string mntpoint, int append);
 
     void setResPath(std::string path);
     std::string getResPath();

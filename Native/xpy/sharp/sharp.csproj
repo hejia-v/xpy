@@ -47,6 +47,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,11 +61,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasePyTest.cs" />
+    <Compile Include="test\BasePyTest.cs" />
     <Compile Include="script\ClientAppPy.cs" />
     <Compile Include="sharppy\Log.cs" />
     <Compile Include="sharppy\PyEnv.cs" />
     <Compile Include="sharppy\SharpObject.cs" />
+    <Compile Include="test\MonoBehaviourFakeTest.cs" />
     <Compile Include="unityfake\MonoBehaviour.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

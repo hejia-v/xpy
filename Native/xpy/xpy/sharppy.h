@@ -77,6 +77,21 @@ extern "C" {
     EXPORT_API int Python_GetInstanceMethod(const char *method, var *argv, const char **err);
     EXPORT_API int Python_SharpCollectGarbage(int n, int *result);
     EXPORT_API int Python_RunFunction(const char *pythonfile, const char *funcname, const char *args);
-    /** **/
-    EXPORT_API void XPY_AddScriptSearchPath();
+    /**
+    * 进行一些初始化工作
+    */
+    EXPORT_API int SHARPPY_init();
+    /**
+    * 退出程序时, 进行一些释放工作
+    */
+    EXPORT_API int SHARPPY_uninit();
+    /**
+    * 添加脚本的搜索路径，采用虚拟文件系统，支持向搜索路径添加目录、zip包和文件
+    * @param realpath - 真实的物理路径
+    * @param mntpoint - 挂载点
+    * @param append - 值为1表示在搜索路径列表后面加入路径，值为0表示在搜索路径列表前面面加入路径
+    * @return void
+    */
+    EXPORT_API int SHARPPY_AddScriptSearchPath(const char *realpath, const char *mntpoint, int append);
 }
+
